@@ -2,43 +2,18 @@
 
 import { useRef, useEffect, useState } from "react";
 
-// Helper to create seeded randomness for consistent galaxy
-class SeededRandom {
-  private seed: number;
-  constructor(seed: number) {
-    this.seed = seed;
-  }
-  next(): number {
-    this.seed = (this.seed * 1664525 + 1013904223) % 4294967296;
-    return this.seed / 4294967296;
-  }
-}
-
-interface Star {
+interface Particle {
+  x: number;
+  y: number;
   originalX: number;
   originalY: number;
-  x: number;
-  y: number;
   vx: number;
   vy: number;
-  radius: number;
-  baseOpacity: number;
+  size: number;
+  color: string;
+  opacity: number;
   twinkleSpeed: number;
   twinkleOffset: number;
-  color: string;
-  depth: number;
-  angle: number;
-  distanceFromCenter: number;
-}
-
-interface Nebula {
-  x: number;
-  y: number;
-  radiusX: number;
-  radiusY: number;
-  rotation: number;
-  color: string;
-  depth: number;
 }
 
 interface ShootingStar {
@@ -49,25 +24,14 @@ interface ShootingStar {
   length: number;
   life: number;
   maxLife: number;
-}
-
-interface DustParticle {
-  x: number;
-  y: number;
-  radius: number;
-  vx: number;
-  vy: number;
-  opacity: number;
-  depth: number;
+  trail: { x: number; y: number }[];
 }
 
 export default function StarField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
-  const starsRef = useRef<Star[]>([]);
-  const nebulasRef = useRef<Nebula[]>([]);
+  const particlesRef = useRef<Particle[]>([]);
   const shootingStarsRef = useRef<ShootingStar[]>([]);
-  const dustRef = useRef<DustParticle[]>([]);
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const [reducedMotion, setReducedMotion] = useState(false);
   const lastTimeRef = useRef<number>(0);
@@ -109,80 +73,79 @@ export default function StarField() {
       centerX = width / 2;
       centerY = height / 2;
 
-      const rng = new SeededRandom(1337);
-      const stars: Star[] = [];
-      const numStars = 3000;
+      const particles: Particle[] = [];
+      const numParticles = 6000;
 
-      for (let i = 0; i < numStars; i++) {
-        const arm = Math.floor(rng.next() * 4);
-        const armAngle = (arm * Math.PI) / 2 + 0.3;
-        const armSpread = 0.6;
-        const distance = rng.next() * Math.min(width, height) * 0.45;
-        const angle = armAngle + (rng.next() - 0.5) * armSpread * (1 - distance / (Math.min(width, height) * 0.45));
-        const depth = 0.2 + rng.next() * 0.8;
+      const armCount = 4;
+      const armTightness = 0.18;
+      const armSpread = 0.25;
 
-        const originalX = centerX + Math.cos(angle) * distance;
-        const originalY = centerY + Math.sin(angle) * distance;
+      // Core stars
+      for (let i = 0; i < 800; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.pow(Math.random(), 2) * Math.min(width, height) * 0.1;
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
 
-        const densityFactor = 1 - distance / (Math.min(width, height) * 0.45);
-
-        stars.push({
-          originalX,
-          originalY,
-          x: originalX,
-          y: originalY,
+        const colors = [
+          "rgba(248,250,252,",
+          "rgba(226,232,240,",
+          "rgba(144,202,249,"
+        ];
+        particles.push({
+          x,
+          y,
+          originalX: x,
+          originalY: y,
           vx: 0,
           vy: 0,
-          radius: 0.3 + rng.next() * 1.8,
-          baseOpacity: 0.15 + rng.next() * 0.85 * Math.max(0.1, densityFactor),
-          twinkleSpeed: 0.0005 + rng.next() * 0.003,
-          twinkleOffset: rng.next() * Math.PI * 2,
-          color:
-            rng.next() > 0.92 ? "rgba(144, 202, 249,"
-              : rng.next() > 0.85 ? "rgba(216, 180, 254,"
-              : "rgba(248, 250, 252,",
-          depth,
-          angle,
-          distanceFromCenter: distance
+          size: 0.8 + Math.random() * 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          opacity: 0.4 + Math.random() * 0.6,
+          twinkleSpeed: 0.001 + Math.random() * 0.004,
+          twinkleOffset: Math.random() * Math.PI * 2
         });
       }
-      starsRef.current = stars;
 
-      const nebulas: Nebula[] = [];
-      const addNebula = (x: number, y: number, rx: number, ry: number, rot: number, color: string, depth: number) => {
-        nebulas.push({
-          x: centerX + x,
-          y: centerY + y,
-          radiusX: rx,
-          radiusY: ry,
-          rotation: rot,
-          color,
-          depth
-        });
-      };
-      addNebula(0, 0, width * 0.4, height * 0.18, -0.4, "rgba(30, 58, 138, 0.08)", 0.5);
-      addNebula(80, -40, width * 0.35, height * 0.15, -0.35, "rgba(56, 189, 248, 0.05)", 0.4);
-      addNebula(-100, 60, width * 0.28, height * 0.12, -0.45, "rgba(124, 58, 237, 0.04)", 0.6);
-      addNebula(-width * 0.3, -height * 0.2, width * 0.2, height * 0.08, 0.2, "rgba(79, 195, 247, 0.025)", 0.8);
-      addNebula(width * 0.3, height * 0.25, width * 0.22, height * 0.09, -0.1, "rgba(124, 58, 237, 0.02)", 0.7);
-      nebulasRef.current = nebulas;
+      // Spiral arm stars
+      for (let i = 0; i < numParticles - 800; i++) {
+        const arm = Math.floor(Math.random() * armCount);
+        const armBaseAngle = (arm * Math.PI * 2) / armCount;
 
-      const dust: DustParticle[] = [];
-      for (let i = 0; i < 150; i++) {
-        const distance = rng.next() * Math.min(width, height) * 0.5;
-        const angle = rng.next() * Math.PI * 2;
-        dust.push({
-          x: centerX + Math.cos(angle) * distance,
-          y: centerY + Math.sin(angle) * distance,
-          radius: 1 + rng.next() * 2,
-          vx: (rng.next() - 0.5) * 0.02,
-          vy: (rng.next() - 0.5) * 0.02,
-          opacity: 0.1 + rng.next() * 0.4,
-          depth: 0.3 + rng.next() * 0.7
+        const distance = Math.pow(Math.random(), 0.8) * Math.min(width, height) * 0.6;
+        const angleVariance = (Math.random() - 0.5) * armSpread * (1 - distance / (Math.min(width, height) * 0.6));
+        const angle = armBaseAngle + distance * armTightness + angleVariance;
+
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+
+        const distanceFactor = Math.max(0.08, 1 - distance / (Math.min(width, height) * 0.65));
+        const size = 0.5 + Math.random() * 2.8 * distanceFactor;
+
+        const colors = [
+          "rgba(79, 195, 247,",
+          "rgba(144, 202, 249,",
+          "rgba(216, 180, 254,",
+          "rgba(196, 181, 253,",
+          "rgba(248, 250, 252,"
+        ];
+
+        particles.push({
+          x,
+          y,
+          originalX: x,
+          originalY: y,
+          vx: 0,
+          vy: 0,
+          size,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          opacity: 0.15 + Math.random() * 0.85 * distanceFactor,
+          twinkleSpeed: 0.0005 + Math.random() * 0.0035,
+          twinkleOffset: Math.random() * Math.PI * 2
         });
       }
-      dustRef.current = dust;
 
+      particlesRef.current = particles;
       shootingStarsRef.current = [];
     };
 
@@ -195,166 +158,179 @@ export default function StarField() {
       const delta = (currentTime - lastTimeRef.current) / 1000;
       lastTimeRef.current = currentTime;
 
-      ctx.clearRect(0, 0, width, height);
-
-      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
-      bgGradient.addColorStop(0, "#020617");
-      bgGradient.addColorStop(0.4, "#050816");
-      bgGradient.addColorStop(0.6, "#020617");
-      bgGradient.addColorStop(1, "#020617");
-      ctx.fillStyle = bgGradient;
-      ctx.fillRect(0, 0, width, height);
-
-      const topLeft = ctx.createRadialGradient(0, 0, 0, 0, 0, width * 0.4);
-      topLeft.addColorStop(0, "rgba(2,6,23,0.98)");
-      topLeft.addColorStop(1, "rgba(2,6,23,0)");
-      ctx.fillStyle = topLeft;
-      ctx.fillRect(0, 0, width * 0.5, height * 0.4);
-
-      const bottomGrad = ctx.createLinearGradient(0, height * 0.75, 0, height);
-      bottomGrad.addColorStop(0, "rgba(2,6,23,0)");
-      bottomGrad.addColorStop(1, "rgba(2,6,23,0.92)");
-      ctx.fillStyle = bottomGrad;
+      ctx.fillStyle = "#020617";
       ctx.fillRect(0, 0, width, height);
 
       if (!reducedMotion) {
-        rotationAngleRef.current += (delta * Math.PI * 2) / (12 * 60); // 12 minutes per rotation
+        rotationAngleRef.current += (delta * Math.PI * 2) / (15 * 60); // 15 mins per full rotation
       }
 
-      const parallaxX = reducedMotion ? 0 : (mousePos.x - centerX) / 100;
-      const parallaxY = reducedMotion ? 0 : (mousePos.y - centerY) / 100;
+      const cursorDist = (x1: number, y1: number, x2: number, y2: number) =>
+        Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 
-      // Draw nebulas
-      nebulasRef.current.forEach(nebula => {
-        const px = nebula.x + parallaxX * nebula.depth * 0.2;
-        const py = nebula.y + parallaxY * nebula.depth * 0.2;
+      // Draw nebula background layers
+      const drawNebula = (
+        x: number,
+        y: number,
+        radius: number,
+        color: string,
+        rotate: number
+      ) => {
         ctx.save();
-        ctx.translate(px, py);
-        ctx.rotate(nebula.rotation + rotationAngleRef.current * 0.1);
-        const grad = ctx.createRadialGradient(0,0,0,0,0,Math.max(nebula.radiusX, nebula.radiusY));
-        grad.addColorStop(0, nebula.color);
-        grad.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = grad;
+        ctx.translate(x, y);
+        ctx.rotate(rotate + rotationAngleRef.current * 0.04);
+        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.ellipse(0, 0, nebula.radiusX, nebula.radiusY, 0, 0, Math.PI*2);
+        ctx.ellipse(0, 0, radius * 1.8, radius * 0.65, -0.42, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
-      });
+      };
 
-      const coreX = centerX + parallaxX * 0.1;
-      const coreY = centerY + parallaxY * 0.1;
-      const coreGlow = ctx.createRadialGradient(coreX, coreY, 0, coreX, coreY, 180);
-      coreGlow.addColorStop(0, "rgba(79,195,247,0.1)");
-      coreGlow.addColorStop(0.4, "rgba(30,58,138,0.05)");
-      coreGlow.addColorStop(1, "rgba(0,0,0,0)");
+      drawNebula(
+        centerX,
+        centerY,
+        width * 0.48,
+        "rgba(30, 58, 138, 0.16)",
+        -0.38
+      );
+      drawNebula(
+        centerX + 120,
+        centerY - 60,
+        width * 0.4,
+        "rgba(56, 189, 248, 0.09)",
+        -0.42
+      );
+      drawNebula(
+        centerX - 90,
+        centerY + 70,
+        width * 0.35,
+        "rgba(124, 58, 237, 0.08)",
+        -0.32
+      );
+
+      // Core glow
+      const coreGlow = ctx.createRadialGradient(
+        centerX,
+        centerY,
+        0,
+        centerX,
+        centerY,
+        300
+      );
+      coreGlow.addColorStop(0, "rgba(248, 250, 252, 0.45)");
+      coreGlow.addColorStop(0.12, "rgba(248, 250, 252, 0.25)");
+      coreGlow.addColorStop(0.25, "rgba(79, 195, 247, 0.22)");
+      coreGlow.addColorStop(0.5, "rgba(30, 58, 138, 0.1)");
+      coreGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx.fillStyle = coreGlow;
-      ctx.fillRect(0,0,width,height);
+      ctx.fillRect(0, 0, width, height);
 
-      const cursorDist = (x1: number, y1: number, x2: number, y2: number) => Math.sqrt((x1-x2)**2 + (y1-y2)**2);
+      // Update and draw particles
+      particlesRef.current.forEach((p) => {
+        const originalAngle = Math.atan2(p.originalY - centerY, p.originalX - centerX);
+        const originalDistance = Math.sqrt((p.originalX - centerX) ** 2 + (p.originalY - centerY) ** 2);
+        const rotatedAngle = originalAngle + rotationAngleRef.current * (1 - originalDistance / (Math.min(width, height) * 0.75));
+        let targetX = centerX + Math.cos(rotatedAngle) * originalDistance;
+        let targetY = centerY + Math.sin(rotatedAngle) * originalDistance;
 
-      // Update and draw dust
-      dustRef.current.forEach(p => {
-        const px = p.x + parallaxX * p.depth * 0.3;
-        const py = p.y + parallaxY * p.depth * 0.3;
-        if (!reducedMotion) {
-          const dist = cursorDist(px, py, mousePos.x, mousePos.y);
-          if (dist < 200) {
-            const force = (200 - dist) / 200;
-            const angle = Math.atan2(mousePos.y - py, mousePos.x - px);
-            p.vx += Math.cos(angle) * force * 0.02;
-            p.vy += Math.sin(angle) * force * 0.02;
+        if (!reducedMotion && mousePos.x !== -1000) {
+          const distToCursor = cursorDist(targetX, targetY, mousePos.x, mousePos.y);
+          if (distToCursor < 250) {
+            const force = Math.min(45, (250 - distToCursor) / 250 * 45);
+            const angleToCursor = Math.atan2(mousePos.y - targetY, mousePos.x - targetX);
+            targetX += Math.cos(angleToCursor) * force;
+            targetY += Math.sin(angleToCursor) * force;
           }
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vx *= 0.98;
-          p.vy *= 0.98;
         }
+
+        p.x += (targetX - p.x) * 0.08;
+        p.y += (targetY - p.y) * 0.08;
+
+        const twinkle = 0.5 + 0.5 * Math.sin(currentTime * p.twinkleSpeed + p.twinkleOffset);
+        const mouseProximity = !reducedMotion && mousePos.x !== -1000
+          ? Math.max(0, 1 - cursorDist(p.x, p.y, mousePos.x, mousePos.y) / 230) * 0.55
+          : 0;
+        const finalOpacity = p.opacity * twinkle + mouseProximity;
+
         ctx.beginPath();
-        ctx.arc(px, py, p.radius, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(144,202,249,${p.opacity})`;
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `${p.color}${Math.min(1, finalOpacity).toFixed(2).substring(2)})`;
         ctx.fill();
       });
 
-      // Update and draw stars
-      starsRef.current.forEach(star => {
-        const rotatedAngle = star.angle + rotationAngleRef.current * (1 - star.depth * 0.5);
-        let targetX = centerX + Math.cos(rotatedAngle) * star.distanceFromCenter;
-        let targetY = centerY + Math.sin(rotatedAngle) * star.distanceFromCenter;
-
-        if (!reducedMotion && cursorDist(targetX, targetY, mousePos.x, mousePos.y) < 200) {
-          const dist = cursorDist(targetX, targetY, mousePos.x, mousePos.y);
-          const force = Math.min(30, (200 - dist) / 200 * 30);
-          const angleToCursor = Math.atan2(mousePos.y - targetY, mousePos.x - targetX);
-          targetX += Math.cos(angleToCursor) * force;
-          targetY += Math.sin(angleToCursor) * force;
-        }
-
-        star.x += (targetX - star.x) * 0.05;
-        star.y += (targetY - star.y) * 0.05;
-
-        const sx = star.x + parallaxX * star.depth * 0.5;
-        const sy = star.y + parallaxY * star.depth * 0.5;
-
-        const twinkle = 0.5 + 0.5 * Math.sin(
-          currentTime * star.twinkleSpeed + star.twinkleOffset
-        );
-        const mouseProx = !reducedMotion ? Math.max(0,1 - cursorDist(sx, sy, mousePos.x, mousePos.y)/180) * 0.4 : 0;
-        const finalOpacity = star.baseOpacity * twinkle + mouseProx;
-
-        ctx.beginPath();
-        ctx.arc(sx, sy, star.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `${star.color}${Math.min(1,finalOpacity).toFixed(2).substring(2)})`;
-        ctx.fill();
-      });
-
-      // Cursor glow
+      // Cursor gravitational glow
       if (!reducedMotion && mousePos.x !== -1000) {
-        const glow = ctx.createRadialGradient(mousePos.x, mousePos.y,0,mousePos.x,mousePos.y,120);
-        glow.addColorStop(0,"rgba(79,195,247,0.08)");
-        glow.addColorStop(0.5,"rgba(30,58,138,0.03)");
-        glow.addColorStop(1,"rgba(0,0,0,0)");
+        const glow = ctx.createRadialGradient(
+          mousePos.x,
+          mousePos.y,
+          0,
+          mousePos.x,
+          mousePos.y,
+          160
+        );
+        glow.addColorStop(0, "rgba(79, 195, 247, 0.15)");
+        glow.addColorStop(0.35, "rgba(30, 58, 138, 0.07)");
+        glow.addColorStop(1, "rgba(0, 0, 0, 0)");
         ctx.fillStyle = glow;
-        ctx.fillRect(0,0,width,height);
+        ctx.fillRect(0, 0, width, height);
       }
 
       // Shooting stars
       const now = currentTime;
-      if (!reducedMotion && now - lastShootingStarRef.current > (8000 + Math.random() * 12000)) {
+      if (!reducedMotion && now - lastShootingStarRef.current > (6000 + Math.random() * 15000)) {
         lastShootingStarRef.current = now;
+        const startX = Math.random() * width;
+        const startY = Math.random() * height * 0.45;
         shootingStarsRef.current.push({
-          x: Math.random() * width,
-          y: Math.random() * height * 0.4,
-          angle: Math.PI/4 + (Math.random()-0.5)*0.8,
-          speed: 18 + Math.random() * 12,
-          length: 100 + Math.random() * 80,
-          life:0,
-          maxLife:1
+          x: startX,
+          y: startY,
+          angle: Math.PI / 4 + (Math.random() - 0.5) * 1,
+          speed: 22 + Math.random() * 18,
+          length: 130 + Math.random() * 120,
+          life: 0,
+          maxLife: 1,
+          trail: []
         });
       }
 
       shootingStarsRef.current = shootingStarsRef.current.filter(ss => {
         ss.x += Math.cos(ss.angle) * ss.speed;
         ss.y += Math.sin(ss.angle) * ss.speed;
-        ss.life += 0.015;
+        ss.life += 0.016;
+
         if (ss.life > ss.maxLife) return false;
 
-        const trailGrad = ctx.createLinearGradient(
-          ss.x, ss.y,
-          ss.x - Math.cos(ss.angle)*ss.length,
-          ss.y - Math.sin(ss.angle)*ss.length
-        );
-        trailGrad.addColorStop(0, `rgba(144,202,249,${1 - ss.life})`);
-        trailGrad.addColorStop(1, "rgba(144,202,249,0)");
-        ctx.beginPath();
-        ctx.moveTo(ss.x, ss.y);
-        ctx.lineTo(ss.x - Math.cos(ss.angle)*ss.length, ss.y - Math.sin(ss.angle)*ss.length);
-        ctx.strokeStyle = trailGrad;
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ss.trail.unshift({ x: ss.x, y: ss.y });
+        if (ss.trail.length > 50) ss.trail.pop();
+
+        if (ss.trail.length > 1) {
+          const trailGradient = ctx.createLinearGradient(
+            ss.trail[0].x,
+            ss.trail[0].y,
+            ss.trail[ss.trail.length - 1].x,
+            ss.trail[ss.trail.length - 1].y
+          );
+          trailGradient.addColorStop(0, `rgba(248, 250, 252, ${1 - ss.life})`);
+          trailGradient.addColorStop(0.25, `rgba(144, 202, 249, ${1 - ss.life})`);
+          trailGradient.addColorStop(1, "rgba(144, 202, 249, 0)");
+
+          ctx.beginPath();
+          ctx.moveTo(ss.trail[0].x, ss.trail[0].y);
+          for (let i = 1; i < ss.trail.length; i++) {
+            ctx.lineTo(ss.trail[i].x, ss.trail[i].y);
+          }
+          ctx.strokeStyle = trailGradient;
+          ctx.lineWidth = 3.5;
+          ctx.lineCap = "round";
+          ctx.stroke();
+        }
 
         ctx.beginPath();
-        ctx.arc(ss.x, ss.y, 3, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(144,202,249,${1 - ss.life})`;
+        ctx.arc(ss.x, ss.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(248, 250, 252, ${1 - ss.life})`;
         ctx.fill();
 
         return true;
