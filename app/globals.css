@@ -136,11 +136,11 @@ body {
 /* ─── OS Desktop ────────────────────────────────────────────────────────────── */
 .desktop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 100px);
-  grid-template-rows: repeat(auto-fill, 100px);
+  grid-template-columns: repeat(3, 140px);
+  grid-template-rows: repeat(3, 150px);
   gap: 16px;
-  padding: 24px;
-  align-content: start;
+  place-content: center;
+  height: 100%;
 }
 
 /* ─── App Window ────────────────────────────────────────────────────────────── */
