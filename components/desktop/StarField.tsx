@@ -14,29 +14,56 @@ interface Particle {
   opacity: number;
   twinkleSpeed: number;
   twinkleOffset: number;
+  depth: number;
+  noiseOffset: number;
 }
 
-interface ShootingStar {
+interface EnergyOrb {
+  x: number;
+  y: number;
+  size: number;
+  life: number;
+  maxLife: number;
+  color: string;
+}
+
+interface ShootingParticle {
   x: number;
   y: number;
   angle: number;
   speed: number;
-  length: number;
   life: number;
   maxLife: number;
   trail: { x: number; y: number }[];
+}
+
+interface EnergyPulse {
+  x: number;
+  y: number;
+  radius: number;
+  maxRadius: number;
+  life: number;
+  maxLife: number;
 }
 
 export default function StarField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
-  const shootingStarsRef = useRef<ShootingStar[]>([]);
+  const orbsRef = useRef<EnergyOrb[]>([]);
+  const shootingRef = useRef<ShootingParticle[]>([]);
+  const pulsesRef = useRef<EnergyPulse[]>([]);
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const [reducedMotion, setReducedMotion] = useState(false);
   const lastTimeRef = useRef<number>(0);
-  const rotationAngleRef = useRef<number>(0);
-  const lastShootingStarRef = useRef<number>(0);
+  const lastPulseRef = useRef<number>(0);
+  const lastShootRef = useRef<number>(0);
+  const timeRef = useRef(0);
+
+  // Simple 2D noise function for organic movement
+  const noise = (x: number, y: number, z: number): number => {
+    return Math.sin(x * 0.01 + z) * Math.cos(y * 0.01 + z * 0.5);
+  };
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -65,7 +92,7 @@ export default function StarField() {
 
     let width = 0, height = 0, centerX = 0, centerY = 0;
 
-    const generateGalaxy = () => {
+    const generateField = () => {
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = width;
@@ -74,268 +101,254 @@ export default function StarField() {
       centerY = height / 2;
 
       const particles: Particle[] = [];
-      const numParticles = 7000;
-
       const colors = [
-        "rgba(144, 202, 249,", // Light blue
-        "rgba(129, 140, 248,", // Purple-blue
-        "rgba(236, 72, 153,", // Pink
-        "rgba(248, 113, 113,", // Red
-        "rgba(167, 139, 250,", // Purple
-        "rgba(74, 222, 128,", // Green
-        "rgba(248, 250, 252,", // White
+        "rgba(56, 189, 248,", // Light blue
         "rgba(96, 165, 250,", // Blue
-        "rgba(192, 132, 252,", // Violet
-        "rgba(251, 146, 180," // Light pink
+        "rgba(129, 140, 248,", // Purple-blue
+        "rgba(144, 202, 249,", // Sky blue
+        "rgba(248, 250, 252," // White
       ];
 
-      // Core stars (dense center)
-      for (let i = 0; i < 1500; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const distance = Math.pow(Math.random(), 2.5) * Math.min(width, height) * 0.15;
-        const x = centerX + Math.cos(angle) * distance;
-        const y = centerY + Math.sin(angle) * distance * 0.6; // Elliptical
+      // Layered particles by depth
+      for (let layer = 0; layer < 4; layer++) {
+        const count = 1500 + layer * 500;
+        const depthFactor = (layer + 1) / 4;
 
-        particles.push({
-          x,
-          y,
-          originalX: x,
-          originalY: y,
-          vx: 0,
-          vy: 0,
-          size: 0.8 + Math.random() * 3.2,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          opacity: 0.45 + Math.random() * 0.55,
-          twinkleSpeed: 0.001 + Math.random() * 0.0045,
-          twinkleOffset: Math.random() * Math.PI * 2
-        });
-      }
-
-      // Main elliptical galaxy
-      for (let i = 0; i < numParticles - 1500; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const distance = Math.pow(Math.random(), 0.9) * Math.min(width, height) * 0.65;
-        const x = centerX + Math.cos(angle) * distance;
-        const y = centerY + Math.sin(angle) * distance * 0.55; // Elliptical shape
-
-        const distanceFactor = Math.max(0.05, 1 - distance / (Math.min(width, height) * 0.7));
-        const size = 0.4 + Math.random() * 2.7 * distanceFactor;
-
-        particles.push({
-          x,
-          y,
-          originalX: x,
-          originalY: y,
-          vx: 0,
-          vy: 0,
-          size,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          opacity: 0.12 + Math.random() * 0.88 * distanceFactor,
-          twinkleSpeed: 0.0005 + Math.random() * 0.004,
-          twinkleOffset: Math.random() * Math.PI * 2
-        });
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            originalX: Math.random() * width,
+            originalY: Math.random() * height,
+            vx: 0,
+            vy: 0,
+            size: 0.3 + Math.random() * 2 * depthFactor,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            opacity: 0.1 + Math.random() * 0.6 * depthFactor,
+            twinkleSpeed: 0.0005 + Math.random() * 0.002,
+            twinkleOffset: Math.random() * Math.PI * 2,
+            depth: depthFactor,
+            noiseOffset: Math.random() * 100
+          });
+        }
       }
 
       particlesRef.current = particles;
-      shootingStarsRef.current = [];
+      orbsRef.current = [];
+      shootingRef.current = [];
+      pulsesRef.current = [];
     };
 
-    generateGalaxy();
-    const handleResize = () => generateGalaxy();
+    generateField();
+    const handleResize = () => generateField();
     window.addEventListener("resize", handleResize);
 
     const animate = (currentTime: number) => {
       if (!lastTimeRef.current) lastTimeRef.current = currentTime;
       const delta = (currentTime - lastTimeRef.current) / 1000;
       lastTimeRef.current = currentTime;
+      timeRef.current += delta;
 
       ctx.fillStyle = "#020617";
       ctx.fillRect(0, 0, width, height);
 
-      if (!reducedMotion) {
-        rotationAngleRef.current += (delta * Math.PI * 2) / (20 * 60); // 20 mins per full rotation
-      }
-
-      const cursorDist = (x1: number, y1: number, x2: number, y2: number) =>
-        Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-
-      // Draw nebula background layers (elliptical)
-      const drawNebula = (
-        x: number,
-        y: number,
-        radius: number,
-        color: string,
-        rotate: number
-      ) => {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(rotate + rotationAngleRef.current * 0.03);
-        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+      // Ambient glow layers
+      const drawGlow = (x: number, y: number, radius: number, color: string) => {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
         gradient.addColorStop(0, color);
         gradient.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.ellipse(0, 0, radius * 1.6, radius * 0.6, -0.35, 0, Math.PI * 2);
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
       };
 
-      drawNebula(
-        centerX,
-        centerY,
-        width * 0.5,
-        "rgba(30, 58, 138, 0.18)",
-        -0.3
+      drawGlow(
+        centerX + Math.sin(timeRef.current * 0.03) * 100,
+        centerY + Math.cos(timeRef.current * 0.02) * 80,
+        width * 0.45,
+        "rgba(30, 58, 138, 0.12)"
       );
-      drawNebula(
-        centerX + 100,
-        centerY - 50,
-        width * 0.42,
-        "rgba(56, 189, 248, 0.1)",
-        -0.38
-      );
-      drawNebula(
-        centerX - 80,
-        centerY + 60,
+      drawGlow(
+        centerX + Math.cos(timeRef.current * 0.025) * 120,
+        centerY + Math.sin(timeRef.current * 0.02) * 90,
         width * 0.38,
-        "rgba(124, 58, 237, 0.1)",
-        -0.32
+        "rgba(56, 189, 248, 0.08)"
+      );
+      drawGlow(
+        centerX + Math.sin(timeRef.current * 0.035) * 90,
+        centerY + Math.cos(timeRef.current * 0.028) * 110,
+        width * 0.3,
+        "rgba(124, 58, 237, 0.04)"
       );
 
-      // Core glow
-      const coreGlow = ctx.createRadialGradient(
-        centerX,
-        centerY,
-        0,
-        centerX,
-        centerY,
-        320
-      );
-      coreGlow.addColorStop(0, "rgba(248, 250, 252, 0.5)");
-      coreGlow.addColorStop(0.15, "rgba(248, 250, 252, 0.3)");
-      coreGlow.addColorStop(0.3, "rgba(79, 195, 247, 0.25)");
-      coreGlow.addColorStop(0.55, "rgba(124, 58, 237, 0.12)");
-      coreGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.fillStyle = coreGlow;
-      ctx.fillRect(0, 0, width, height);
-
-      // Update and draw particles
-      particlesRef.current.forEach((p) => {
-        const originalAngle = Math.atan2(p.originalY - centerY, p.originalX - centerX);
-        const originalDistance = Math.sqrt((p.originalX - centerX) ** 2 + (p.originalY - centerY) ** 2);
-        const rotatedAngle = originalAngle + rotationAngleRef.current * (1 - originalDistance / (Math.min(width, height) * 0.8));
-        let targetX = centerX + Math.cos(rotatedAngle) * originalDistance;
-        let targetY = centerY + Math.sin(rotatedAngle) * originalDistance * 0.55; // Keep elliptical
-
-        if (!reducedMotion && mousePos.x !== -1000) {
-          const distToCursor = cursorDist(targetX, targetY, mousePos.x, mousePos.y);
-          if (distToCursor < 280) {
-            const force = Math.min(50, (280 - distToCursor) / 280 * 50);
-            const angleToCursor = Math.atan2(mousePos.y - targetY, mousePos.x - targetX);
-            targetX += Math.cos(angleToCursor) * force;
-            targetY += Math.sin(angleToCursor) * force;
-          }
-        }
-
-        p.x += (targetX - p.x) * 0.09;
-        p.y += (targetY - p.y) * 0.09;
-
-        const twinkle = 0.5 + 0.5 * Math.sin(currentTime * p.twinkleSpeed + p.twinkleOffset);
-        const mouseProximity = !reducedMotion && mousePos.x !== -1000
-          ? Math.max(0, 1 - cursorDist(p.x, p.y, mousePos.x, mousePos.y) / 250) * 0.6
-          : 0;
-        const finalOpacity = p.opacity * twinkle + mouseProximity;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}${Math.min(1, finalOpacity).toFixed(2).substring(2)})`;
-        ctx.fill();
-      });
-
-      // Cursor gravitational glow
-      if (!reducedMotion && mousePos.x !== -1000) {
-        const glow = ctx.createRadialGradient(
-          mousePos.x,
-          mousePos.y,
-          0,
-          mousePos.x,
-          mousePos.y,
-          180
-        );
-        glow.addColorStop(0, "rgba(79, 195, 247, 0.18)");
-        glow.addColorStop(0.4, "rgba(124, 58, 237, 0.1)");
-        glow.addColorStop(1, "rgba(0, 0, 0, 0)");
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, width, height);
+      // Energy pulses
+      const now = currentTime;
+      if (!reducedMotion && now - lastPulseRef.current > 12000 + Math.random() * 8000) {
+        lastPulseRef.current = now;
+        pulsesRef.current.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: 0,
+          maxRadius: 150 + Math.random() * 100,
+          life: 0,
+          maxLife: 2
+        });
       }
 
-      // Shooting stars
-      const now = currentTime;
-      if (!reducedMotion && now - lastShootingStarRef.current > (5000 + Math.random() * 16000)) {
-        lastShootingStarRef.current = now;
-        const startX = Math.random() * width;
-        const startY = Math.random() * height * 0.5;
-        shootingStarsRef.current.push({
-          x: startX,
-          y: startY,
-          angle: Math.PI / 4 + (Math.random() - 0.5) * 1.2,
-          speed: 24 + Math.random() * 20,
-          length: 140 + Math.random() * 130,
+      pulsesRef.current = pulsesRef.current.filter(pulse => {
+        pulse.life += delta;
+        pulse.radius = (pulse.life / pulse.maxLife) * pulse.maxRadius;
+        const opacity = 1 - pulse.life / pulse.maxLife;
+
+        if (pulse.life > pulse.maxLife) return false;
+
+        ctx.strokeStyle = `rgba(56, 189, 248, ${opacity * 0.4})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        return true;
+      });
+
+      // Shooting particles
+      if (!reducedMotion && now - lastShootRef.current > 10000 + Math.random() * 8000) {
+        lastShootRef.current = now;
+        const angle = Math.random() * Math.PI * 2;
+        shootingRef.current.push({
+          x: Math.random() * width,
+          y: Math.random() * height * 0.6,
+          angle,
+          speed: 200 + Math.random() * 100,
           life: 0,
-          maxLife: 1,
+          maxLife: 0.6,
           trail: []
         });
       }
 
-      shootingStarsRef.current = shootingStarsRef.current.filter(ss => {
-        ss.x += Math.cos(ss.angle) * ss.speed;
-        ss.y += Math.sin(ss.angle) * ss.speed;
-        ss.life += 0.015;
+      shootingRef.current = shootingRef.current.filter(sp => {
+        sp.x += Math.cos(sp.angle) * sp.speed * delta;
+        sp.y += Math.sin(sp.angle) * sp.speed * delta;
+        sp.life += delta;
 
-        if (ss.life > ss.maxLife) return false;
+        if (sp.life > sp.maxLife) return false;
 
-        ss.trail.unshift({ x: ss.x, y: ss.y });
-        if (ss.trail.length > 60) ss.trail.pop();
+        sp.trail.unshift({ x: sp.x, y: sp.y });
+        if (sp.trail.length > 25) sp.trail.pop();
 
-        if (ss.trail.length > 1) {
-          const trailColors = [
-            "rgba(248,250,252,",
-            "rgba(144,202,249,",
-            "rgba(236,72,153,"
-          ];
-          const trailGradient = ctx.createLinearGradient(
-            ss.trail[0].x,
-            ss.trail[0].y,
-            ss.trail[ss.trail.length - 1].x,
-            ss.trail[ss.trail.length - 1].y
+        if (sp.trail.length > 1) {
+          const trailGrad = ctx.createLinearGradient(
+            sp.trail[0].x, sp.trail[0].y,
+            sp.trail[sp.trail.length - 1].x, sp.trail[sp.trail.length - 1].y
           );
-          trailGradient.addColorStop(0, `${trailColors[Math.floor(Math.random()*trailColors.length)]}${1 - ss.life})`);
-          trailGradient.addColorStop(0.3, "rgba(144,202,249,0)");
-          trailGradient.addColorStop(1, "rgba(0,0,0,0)");
-
-          ctx.beginPath();
-          ctx.moveTo(ss.trail[0].x, ss.trail[0].y);
-          for (let i = 1; i < ss.trail.length; i++) {
-            ctx.lineTo(ss.trail[i].x, ss.trail[i].y);
-          }
-          ctx.strokeStyle = trailGradient;
-          ctx.lineWidth = 4;
+          trailGrad.addColorStop(0, `rgba(248,250,252, ${0.8 * (1 - sp.life / sp.maxLife)})`);
+          trailGrad.addColorStop(0.3, `rgba(56,189,248, ${0.5 * (1 - sp.life / sp.maxLife)})`);
+          trailGrad.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.lineWidth = 3;
           ctx.lineCap = "round";
+          ctx.strokeStyle = trailGrad;
+          ctx.beginPath();
+          ctx.moveTo(sp.trail[0].x, sp.trail[0].y);
+          sp.trail.forEach(p => ctx.lineTo(p.x, p.y));
           ctx.stroke();
         }
 
+        return true;
+      });
+
+      // Energy orbs
+      if (!reducedMotion && orbsRef.current.length < 4 && Math.random() < 0.003) {
+        orbsRef.current.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: 2 + Math.random() * 4,
+          life: 0,
+          maxLife: 5 + Math.random() * 5,
+          color: Math.random() > 0.5 ? "rgba(56,189,248," : "rgba(129,140,248,"
+        });
+      }
+
+      orbsRef.current = orbsRef.current.filter(orb => {
+        orb.life += delta;
+        orb.x += (Math.sin(timeRef.current * 0.2 + orb.x) * 0.3);
+        orb.y += (Math.cos(timeRef.current * 0.25 + orb.y) * 0.3);
+
+        if (orb.life > orb.maxLife) return false;
+
+        const opacity = orb.life < 1 ? orb.life : orb.life > orb.maxLife - 1 ? orb.maxLife - orb.life : 1;
+        const grad = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.size * 3);
+        grad.addColorStop(0, `${orb.color}${opacity * 0.5})`);
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(ss.x, ss.y, 5.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(248, 250, 252, ${1 - ss.life})`;
+        ctx.arc(orb.x, orb.y, orb.size * 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, orb.size, 0, Math.PI * 2);
+        ctx.fillStyle = `${orb.color}${opacity})`;
         ctx.fill();
 
         return true;
       });
 
+      // Update and draw quantum particles
+      particlesRef.current.forEach(p => {
+        let targetX = p.originalX;
+        let targetY = p.originalY;
+
+        // Organic noise-based movement
+        if (!reducedMotion) {
+          targetX += noise(p.originalX, p.originalY, timeRef.current * 0.1 + p.noiseOffset) * 20 * p.depth;
+          targetY += noise(p.originalX + 100, p.originalY, timeRef.current * 0.1 + p.noiseOffset) * 20 * p.depth;
+        }
+
+        // Cursor interaction
+        if (!reducedMotion && mousePos.x !== -1000) {
+          const dist = Math.sqrt((targetX - mousePos.x) ** 2 + (targetY - mousePos.y) ** 2);
+          if (dist < 180) {
+            const force = Math.min(25, (180 - dist) / 180 * 25);
+            const angle = Math.atan2(mousePos.y - targetY, mousePos.x - targetX);
+            targetX += Math.cos(angle) * force * p.depth;
+            targetY += Math.sin(angle) * force * p.depth;
+          }
+        }
+
+        // Parallax
+        const parallaxX = reducedMotion ? 0 : (mousePos.x - centerX) / 300 * p.depth;
+        const parallaxY = reducedMotion ? 0 : (mousePos.y - centerY) / 300 * p.depth;
+        targetX += parallaxX;
+        targetY += parallaxY;
+
+        p.x += (targetX - p.x) * 0.04;
+        p.y += (targetY - p.y) * 0.04;
+
+        // Twinkle
+        const twinkle = 0.6 + 0.4 * Math.sin(timeRef.current * p.twinkleSpeed * 100 + p.twinkleOffset);
+        const mouseProx = !reducedMotion && mousePos.x !== -1000
+          ? Math.max(0, 1 - Math.sqrt((p.x - mousePos.x) ** 2 + (p.y - mousePos.y) ** 2) / 200) * 0.4
+          : 0;
+
+        // Pulse brightening
+        let pulseBright = 1;
+        pulsesRef.current.forEach(pulse => {
+          const d = Math.sqrt((p.x - pulse.x) ** 2 + (p.y - pulse.y) ** 2);
+          if (d < pulse.radius + 50) {
+            pulseBright += (1 - d / (pulse.radius + 50)) * 0.5;
+          }
+        });
+
+        const finalOpacity = Math.min(1, p.opacity * twinkle + mouseProx) * pulseBright;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `${p.color}${finalOpacity.toFixed(2).substring(2)})`;
+        ctx.fill();
+      });
+
       animRef.current = requestAnimationFrame(animate);
     };
 
-    lastTimeRef.current = 0;
     animRef.current = requestAnimationFrame(animate);
 
     return () => {
