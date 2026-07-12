@@ -43,7 +43,7 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.05 }}
-      transition={{ exit: { duration: 0.8, ease: "easeInOut" } }}
+      transition={{ duration: 0.8, ease: "easeInOut" }}
     >
       {/* Background grid */}
       <div

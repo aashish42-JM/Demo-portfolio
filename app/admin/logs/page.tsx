@@ -6,6 +6,14 @@ import { LOGBOOK_ENTRIES } from "@/lib/data";
 import { LogbookEntry } from "@/types";
 import { Plus, Trash2, BookOpen } from "lucide-react";
 
+function getWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
 export default function AdminLogs() {
   const [entries, setEntries] = useState<LogbookEntry[]>(LOGBOOK_ENTRIES);
   const [isAdding, setIsAdding] = useState(false);
@@ -13,13 +21,14 @@ export default function AdminLogs() {
 
   const handleAdd = () => {
     if (!form.title || !form.content) return;
+    const now = new Date();
     const newEntry: LogbookEntry = {
       id: String(Date.now()),
       title: form.title,
       content: form.content,
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
-      week: form.week || `Week ${new Date().getWeek?.() ?? "??"}, ${new Date().getFullYear()}`,
-      created_at: new Date().toISOString(),
+      week: form.week || `Week ${getWeekNumber(now)}, ${now.getFullYear()}`,
+      created_at: now.toISOString(),
     };
     setEntries((prev) => [newEntry, ...prev]);
     setIsAdding(false);
