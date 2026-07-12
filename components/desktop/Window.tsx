@@ -200,6 +200,7 @@ export default function Window({
               ? "0 20px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(79,195,247,0.15)"
               : "0 12px 28px rgba(0, 0, 0, 0.35), 0 0 30px rgba(79,195,247,0.06)",
             transition: win.isMaximized ? "top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease" : undefined,
+            borderRadius: win.isMaximized ? 0 : undefined,
           }}
           onMouseDown={() => onFocus(win.id)}
         >

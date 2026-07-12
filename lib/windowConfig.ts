@@ -86,14 +86,12 @@ export function getMaximizedBounds(): WindowBounds {
   const { width: vw, height: vh } = getViewport();
   const availableHeight = vh - WINDOW_CONSTRAINTS.TASKBAR_HEIGHT;
 
+  // Return full-screen bounds for a maximized window. Keep taskbar area reserved.
   return {
-    x: vw * WINDOW_CONSTRAINTS.MAXIMIZED_LEFT_VW,
-    y: vh * WINDOW_CONSTRAINTS.MAXIMIZED_TOP_VH,
-    width: vw * WINDOW_CONSTRAINTS.MAXIMIZED_WIDTH_VW,
-    height: Math.min(
-      availableHeight * WINDOW_CONSTRAINTS.MAXIMIZED_HEIGHT_VH,
-      vh * WINDOW_CONSTRAINTS.MAXIMIZED_HEIGHT_VH
-    ),
+    x: 0,
+    y: 0,
+    width: vw,
+    height: availableHeight,
   };
 }
 
