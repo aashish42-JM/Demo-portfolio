@@ -74,24 +74,28 @@ export default function StarField() {
       centerY = height / 2;
 
       const particles: Particle[] = [];
-      const numParticles = 6000;
+      const numParticles = 7000;
 
-      const armCount = 4;
-      const armTightness = 0.18;
-      const armSpread = 0.25;
+      const colors = [
+        "rgba(144, 202, 249,", // Light blue
+        "rgba(129, 140, 248,", // Purple-blue
+        "rgba(236, 72, 153,", // Pink
+        "rgba(248, 113, 113,", // Red
+        "rgba(167, 139, 250,", // Purple
+        "rgba(74, 222, 128,", // Green
+        "rgba(248, 250, 252,", // White
+        "rgba(96, 165, 250,", // Blue
+        "rgba(192, 132, 252,", // Violet
+        "rgba(251, 146, 180," // Light pink
+      ];
 
-      // Core stars
-      for (let i = 0; i < 800; i++) {
+      // Core stars (dense center)
+      for (let i = 0; i < 1500; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const distance = Math.pow(Math.random(), 2) * Math.min(width, height) * 0.1;
+        const distance = Math.pow(Math.random(), 2.5) * Math.min(width, height) * 0.15;
         const x = centerX + Math.cos(angle) * distance;
-        const y = centerY + Math.sin(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance * 0.6; // Elliptical
 
-        const colors = [
-          "rgba(248,250,252,",
-          "rgba(226,232,240,",
-          "rgba(144,202,249,"
-        ];
         particles.push({
           x,
           y,
@@ -99,36 +103,23 @@ export default function StarField() {
           originalY: y,
           vx: 0,
           vy: 0,
-          size: 0.8 + Math.random() * 3,
+          size: 0.8 + Math.random() * 3.2,
           color: colors[Math.floor(Math.random() * colors.length)],
-          opacity: 0.4 + Math.random() * 0.6,
-          twinkleSpeed: 0.001 + Math.random() * 0.004,
+          opacity: 0.45 + Math.random() * 0.55,
+          twinkleSpeed: 0.001 + Math.random() * 0.0045,
           twinkleOffset: Math.random() * Math.PI * 2
         });
       }
 
-      // Spiral arm stars
-      for (let i = 0; i < numParticles - 800; i++) {
-        const arm = Math.floor(Math.random() * armCount);
-        const armBaseAngle = (arm * Math.PI * 2) / armCount;
-
-        const distance = Math.pow(Math.random(), 0.8) * Math.min(width, height) * 0.6;
-        const angleVariance = (Math.random() - 0.5) * armSpread * (1 - distance / (Math.min(width, height) * 0.6));
-        const angle = armBaseAngle + distance * armTightness + angleVariance;
-
+      // Main elliptical galaxy
+      for (let i = 0; i < numParticles - 1500; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.pow(Math.random(), 0.9) * Math.min(width, height) * 0.65;
         const x = centerX + Math.cos(angle) * distance;
-        const y = centerY + Math.sin(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance * 0.55; // Elliptical shape
 
-        const distanceFactor = Math.max(0.08, 1 - distance / (Math.min(width, height) * 0.65));
-        const size = 0.5 + Math.random() * 2.8 * distanceFactor;
-
-        const colors = [
-          "rgba(79, 195, 247,",
-          "rgba(144, 202, 249,",
-          "rgba(216, 180, 254,",
-          "rgba(196, 181, 253,",
-          "rgba(248, 250, 252,"
-        ];
+        const distanceFactor = Math.max(0.05, 1 - distance / (Math.min(width, height) * 0.7));
+        const size = 0.4 + Math.random() * 2.7 * distanceFactor;
 
         particles.push({
           x,
@@ -139,8 +130,8 @@ export default function StarField() {
           vy: 0,
           size,
           color: colors[Math.floor(Math.random() * colors.length)],
-          opacity: 0.15 + Math.random() * 0.85 * distanceFactor,
-          twinkleSpeed: 0.0005 + Math.random() * 0.0035,
+          opacity: 0.12 + Math.random() * 0.88 * distanceFactor,
+          twinkleSpeed: 0.0005 + Math.random() * 0.004,
           twinkleOffset: Math.random() * Math.PI * 2
         });
       }
@@ -162,13 +153,13 @@ export default function StarField() {
       ctx.fillRect(0, 0, width, height);
 
       if (!reducedMotion) {
-        rotationAngleRef.current += (delta * Math.PI * 2) / (15 * 60); // 15 mins per full rotation
+        rotationAngleRef.current += (delta * Math.PI * 2) / (20 * 60); // 20 mins per full rotation
       }
 
       const cursorDist = (x1: number, y1: number, x2: number, y2: number) =>
         Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 
-      // Draw nebula background layers
+      // Draw nebula background layers (elliptical)
       const drawNebula = (
         x: number,
         y: number,
@@ -178,13 +169,13 @@ export default function StarField() {
       ) => {
         ctx.save();
         ctx.translate(x, y);
-        ctx.rotate(rotate + rotationAngleRef.current * 0.04);
+        ctx.rotate(rotate + rotationAngleRef.current * 0.03);
         const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
         gradient.addColorStop(0, color);
         gradient.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.ellipse(0, 0, radius * 1.8, radius * 0.65, -0.42, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, radius * 1.6, radius * 0.6, -0.35, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       };
@@ -192,22 +183,22 @@ export default function StarField() {
       drawNebula(
         centerX,
         centerY,
-        width * 0.48,
-        "rgba(30, 58, 138, 0.16)",
+        width * 0.5,
+        "rgba(30, 58, 138, 0.18)",
+        -0.3
+      );
+      drawNebula(
+        centerX + 100,
+        centerY - 50,
+        width * 0.42,
+        "rgba(56, 189, 248, 0.1)",
         -0.38
       );
       drawNebula(
-        centerX + 120,
-        centerY - 60,
-        width * 0.4,
-        "rgba(56, 189, 248, 0.09)",
-        -0.42
-      );
-      drawNebula(
-        centerX - 90,
-        centerY + 70,
-        width * 0.35,
-        "rgba(124, 58, 237, 0.08)",
+        centerX - 80,
+        centerY + 60,
+        width * 0.38,
+        "rgba(124, 58, 237, 0.1)",
         -0.32
       );
 
@@ -218,12 +209,12 @@ export default function StarField() {
         0,
         centerX,
         centerY,
-        300
+        320
       );
-      coreGlow.addColorStop(0, "rgba(248, 250, 252, 0.45)");
-      coreGlow.addColorStop(0.12, "rgba(248, 250, 252, 0.25)");
-      coreGlow.addColorStop(0.25, "rgba(79, 195, 247, 0.22)");
-      coreGlow.addColorStop(0.5, "rgba(30, 58, 138, 0.1)");
+      coreGlow.addColorStop(0, "rgba(248, 250, 252, 0.5)");
+      coreGlow.addColorStop(0.15, "rgba(248, 250, 252, 0.3)");
+      coreGlow.addColorStop(0.3, "rgba(79, 195, 247, 0.25)");
+      coreGlow.addColorStop(0.55, "rgba(124, 58, 237, 0.12)");
       coreGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx.fillStyle = coreGlow;
       ctx.fillRect(0, 0, width, height);
@@ -232,26 +223,26 @@ export default function StarField() {
       particlesRef.current.forEach((p) => {
         const originalAngle = Math.atan2(p.originalY - centerY, p.originalX - centerX);
         const originalDistance = Math.sqrt((p.originalX - centerX) ** 2 + (p.originalY - centerY) ** 2);
-        const rotatedAngle = originalAngle + rotationAngleRef.current * (1 - originalDistance / (Math.min(width, height) * 0.75));
+        const rotatedAngle = originalAngle + rotationAngleRef.current * (1 - originalDistance / (Math.min(width, height) * 0.8));
         let targetX = centerX + Math.cos(rotatedAngle) * originalDistance;
-        let targetY = centerY + Math.sin(rotatedAngle) * originalDistance;
+        let targetY = centerY + Math.sin(rotatedAngle) * originalDistance * 0.55; // Keep elliptical
 
         if (!reducedMotion && mousePos.x !== -1000) {
           const distToCursor = cursorDist(targetX, targetY, mousePos.x, mousePos.y);
-          if (distToCursor < 250) {
-            const force = Math.min(45, (250 - distToCursor) / 250 * 45);
+          if (distToCursor < 280) {
+            const force = Math.min(50, (280 - distToCursor) / 280 * 50);
             const angleToCursor = Math.atan2(mousePos.y - targetY, mousePos.x - targetX);
             targetX += Math.cos(angleToCursor) * force;
             targetY += Math.sin(angleToCursor) * force;
           }
         }
 
-        p.x += (targetX - p.x) * 0.08;
-        p.y += (targetY - p.y) * 0.08;
+        p.x += (targetX - p.x) * 0.09;
+        p.y += (targetY - p.y) * 0.09;
 
         const twinkle = 0.5 + 0.5 * Math.sin(currentTime * p.twinkleSpeed + p.twinkleOffset);
         const mouseProximity = !reducedMotion && mousePos.x !== -1000
-          ? Math.max(0, 1 - cursorDist(p.x, p.y, mousePos.x, mousePos.y) / 230) * 0.55
+          ? Math.max(0, 1 - cursorDist(p.x, p.y, mousePos.x, mousePos.y) / 250) * 0.6
           : 0;
         const finalOpacity = p.opacity * twinkle + mouseProximity;
 
@@ -269,10 +260,10 @@ export default function StarField() {
           0,
           mousePos.x,
           mousePos.y,
-          160
+          180
         );
-        glow.addColorStop(0, "rgba(79, 195, 247, 0.15)");
-        glow.addColorStop(0.35, "rgba(30, 58, 138, 0.07)");
+        glow.addColorStop(0, "rgba(79, 195, 247, 0.18)");
+        glow.addColorStop(0.4, "rgba(124, 58, 237, 0.1)");
         glow.addColorStop(1, "rgba(0, 0, 0, 0)");
         ctx.fillStyle = glow;
         ctx.fillRect(0, 0, width, height);
@@ -280,16 +271,16 @@ export default function StarField() {
 
       // Shooting stars
       const now = currentTime;
-      if (!reducedMotion && now - lastShootingStarRef.current > (6000 + Math.random() * 15000)) {
+      if (!reducedMotion && now - lastShootingStarRef.current > (5000 + Math.random() * 16000)) {
         lastShootingStarRef.current = now;
         const startX = Math.random() * width;
-        const startY = Math.random() * height * 0.45;
+        const startY = Math.random() * height * 0.5;
         shootingStarsRef.current.push({
           x: startX,
           y: startY,
-          angle: Math.PI / 4 + (Math.random() - 0.5) * 1,
-          speed: 22 + Math.random() * 18,
-          length: 130 + Math.random() * 120,
+          angle: Math.PI / 4 + (Math.random() - 0.5) * 1.2,
+          speed: 24 + Math.random() * 20,
+          length: 140 + Math.random() * 130,
           life: 0,
           maxLife: 1,
           trail: []
@@ -299,23 +290,28 @@ export default function StarField() {
       shootingStarsRef.current = shootingStarsRef.current.filter(ss => {
         ss.x += Math.cos(ss.angle) * ss.speed;
         ss.y += Math.sin(ss.angle) * ss.speed;
-        ss.life += 0.016;
+        ss.life += 0.015;
 
         if (ss.life > ss.maxLife) return false;
 
         ss.trail.unshift({ x: ss.x, y: ss.y });
-        if (ss.trail.length > 50) ss.trail.pop();
+        if (ss.trail.length > 60) ss.trail.pop();
 
         if (ss.trail.length > 1) {
+          const trailColors = [
+            "rgba(248,250,252,",
+            "rgba(144,202,249,",
+            "rgba(236,72,153,"
+          ];
           const trailGradient = ctx.createLinearGradient(
             ss.trail[0].x,
             ss.trail[0].y,
             ss.trail[ss.trail.length - 1].x,
             ss.trail[ss.trail.length - 1].y
           );
-          trailGradient.addColorStop(0, `rgba(248, 250, 252, ${1 - ss.life})`);
-          trailGradient.addColorStop(0.25, `rgba(144, 202, 249, ${1 - ss.life})`);
-          trailGradient.addColorStop(1, "rgba(144, 202, 249, 0)");
+          trailGradient.addColorStop(0, `${trailColors[Math.floor(Math.random()*trailColors.length)]}${1 - ss.life})`);
+          trailGradient.addColorStop(0.3, "rgba(144,202,249,0)");
+          trailGradient.addColorStop(1, "rgba(0,0,0,0)");
 
           ctx.beginPath();
           ctx.moveTo(ss.trail[0].x, ss.trail[0].y);
@@ -323,13 +319,13 @@ export default function StarField() {
             ctx.lineTo(ss.trail[i].x, ss.trail[i].y);
           }
           ctx.strokeStyle = trailGradient;
-          ctx.lineWidth = 3.5;
+          ctx.lineWidth = 4;
           ctx.lineCap = "round";
           ctx.stroke();
         }
 
         ctx.beginPath();
-        ctx.arc(ss.x, ss.y, 5, 0, Math.PI * 2);
+        ctx.arc(ss.x, ss.y, 5.5, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(248, 250, 252, ${1 - ss.life})`;
         ctx.fill();
 
