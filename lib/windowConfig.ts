@@ -116,8 +116,17 @@ export function clampWindowPosition(
   const minVisible = titleBar * 0.3;
   const availableHeight = vh - WINDOW_CONSTRAINTS.TASKBAR_HEIGHT;
 
+  // Enforce a minimum safe margin (in pixels) around window bounds
+  const SAFE_MARGIN_PX = 32;
+
+  const minX = SAFE_MARGIN_PX;
+  const maxX = Math.max(SAFE_MARGIN_PX, vw - size.width - SAFE_MARGIN_PX);
+
+  const minY = SAFE_MARGIN_PX - (titleBar - minVisible); // allow a small titlebar peek
+  const maxY = Math.max(SAFE_MARGIN_PX, availableHeight - size.height - SAFE_MARGIN_PX + minVisible);
+
   return {
-    x: Math.max(-(size.width - 100), Math.min(pos.x, vw - 100)),
-    y: Math.max(-(titleBar - minVisible), Math.min(pos.y, availableHeight - minVisible)),
+    x: Math.max(minX, Math.min(pos.x, maxX)),
+    y: Math.max(minY, Math.min(pos.y, maxY)),
   };
 }

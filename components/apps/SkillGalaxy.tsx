@@ -197,57 +197,59 @@ export default function SkillGalaxy() {
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full p-4">
-      <canvas
-        ref={canvasRef}
-        className="skill-canvas absolute inset-0"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => {
-          hoveredRef.current = null;
-          setHoveredSkill(null);
-        }}
-      />
+    <div className="h-full flex flex-col">
+      <div ref={containerRef} className="relative flex-1 p-6">
+        <canvas
+          ref={canvasRef}
+          className="skill-canvas absolute inset-0"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => {
+            hoveredRef.current = null;
+            setHoveredSkill(null);
+          }}
+        />
 
-      {/* Hover tooltip */}
-      <AnimatePresence>
-        {hoveredSkill && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.15 }}
-            className="absolute z-10 pointer-events-none glass-strong neon-border rounded-2xl p-5 w-64"
-            style={{
-              left: Math.min(mousePos.x + 16, (containerRef.current?.clientWidth ?? 500) - 272),
-              top: Math.min(mousePos.y - 24, (containerRef.current?.clientHeight ?? 500) - 160),
-            }}
-          >
-            <div className="font-bold text-white text-lg mb-2">{hoveredSkill.name}</div>
-            <div className={`font-mono text-sm capitalize ${levelColors[hoveredSkill.level]} mb-2`}>
-              ● {hoveredSkill.level}
-            </div>
-            <div className="text-sm text-[#64b5f6]/80 leading-relaxed">
-              {hoveredSkill.description}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Hover tooltip */}
+        <AnimatePresence>
+          {hoveredSkill && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.15 }}
+              className="absolute z-10 pointer-events-none glass-strong neon-border rounded-2xl p-6 w-72"
+              style={{
+                left: Math.min(mousePos.x + 16, (containerRef.current?.clientWidth ?? 500) - 304),
+                top: Math.min(mousePos.y - 24, (containerRef.current?.clientHeight ?? 500) - 180),
+              }}
+            >
+              <div className="font-bold text-white text-xl mb-3">{hoveredSkill.name}</div>
+              <div className={`font-mono text-sm capitalize ${levelColors[hoveredSkill.level]} mb-3`}>
+                ● {hoveredSkill.level}
+              </div>
+              <div className="text-sm text-[#64b5f6]/80 leading-relaxed">
+                {hoveredSkill.description}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Legend */}
-      <div className="absolute top-5 right-5 glass rounded-2xl p-5 text-sm space-y-2.5">
-        <div className="font-mono text-xs text-[#4fc3f7]/70 uppercase tracking-widest mb-3">// Legend</div>
-        {[
-          { label: "Advanced", color: "text-purple-400" },
-          { label: "Intermediate", color: "text-green-400" },
-          { label: "Learning", color: "text-[#4fc3f7]" },
-          { label: "Beginner", color: "text-yellow-400" },
-        ].map((l) => (
-          <div key={l.label} className={`flex items-center gap-2.5 ${l.color} font-mono`}>
-            <div className="w-3.5 h-3.5 rounded-full bg-current" />
-            {l.label}
-          </div>
-        ))}
-        <div className="text-xs text-white/40 mt-3 font-mono">Hover planets to explore</div>
+        {/* Legend */}
+        <div className="absolute top-6 right-6 glass rounded-2xl p-6 text-sm space-y-3">
+          <div className="font-mono text-xs text-[#4fc3f7]/70 uppercase tracking-widest mb-4">// Legend</div>
+          {[
+            { label: "Advanced", color: "text-purple-400" },
+            { label: "Intermediate", color: "text-green-400" },
+            { label: "Learning", color: "text-[#4fc3f7]" },
+            { label: "Beginner", color: "text-yellow-400" },
+          ].map((l) => (
+            <div key={l.label} className={`flex items-center gap-3 ${l.color} font-mono`}>
+              <div className="w-4 h-4 rounded-full bg-current" />
+              {l.label}
+            </div>
+          ))}
+          <div className="text-xs text-white/40 mt-4 font-mono">Hover planets to explore</div>
+        </div>
       </div>
     </div>
   );

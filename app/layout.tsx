@@ -44,7 +44,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased bg-[#050816] text-white overflow-hidden">
-        {children}
+        <div className="app-safe min-h-screen">
+          {children}
+        </div>
       </body>
     </html>
   );

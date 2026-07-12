@@ -21,6 +21,19 @@
 
   --shadow-glow: 0 0 20px rgba(79, 195, 247, 0.2), 0 0 60px rgba(79, 195, 247, 0.05);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  /* Spacing scale (8px baseline) */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────────── */
@@ -38,22 +51,44 @@ body {
   background: var(--color-bg-primary);
   font-family: var(--font-sans);
   color: white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(100, 181, 246, 0.3);
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 181, 246, 0.6);
+.window-body {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(79, 195, 247, 0);
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+  }
+  &:hover::-webkit-scrollbar-thumb,
+  &.scrolling::-webkit-scrollbar-thumb {
+    background: rgba(79, 195, 247, 0.35);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(79, 195, 247, 0.6);
+    box-shadow: 0 0 10px rgba(79, 195, 247, 0.4);
+  }
+  &::-webkit-scrollbar-thumb:active {
+    background: rgba(79, 195, 247, 0.8);
+  }
+
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(79, 195, 247, 0) transparent;
+  
+  &:hover,
+  &.scrolling {
+    scrollbar-color: rgba(79, 195, 247, 0.35) transparent;
+  }
 }
 
 /* ─── Glass Card ────────────────────────────────────────────────────────────── */
@@ -159,6 +194,18 @@ body {
   background: rgba(5, 8, 22, 0.85);
   overflow-y: auto;
   overflow-x: hidden;
+  padding: var(--space-32);
+  padding-bottom: calc(var(--space-32) + var(--space-16));
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* window inner safe area for smaller screens */
+@media (max-width: 768px) {
+  .window-body {
+    padding: var(--space-24);
+    padding-bottom: calc(var(--space-24) + var(--space-12));
+  }
 }
 
 /* ─── Terminal ──────────────────────────────────────────────────────────────── */
@@ -167,7 +214,7 @@ body {
   font-family: var(--font-mono);
   color: #4fc3f7;
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: var(--space-24);
 }
 
 .terminal-prompt::before {
@@ -233,6 +280,7 @@ body {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  padding: var(--space-24);
 }
 
 .lab-card::before {
@@ -280,6 +328,87 @@ body {
   border-radius: 50%;
   border: 2px solid var(--color-blue-bright);
   animation: pulse-ring 2s ease-out infinite;
+}
+
+/* Typography and text spacing */
+h1, h2, h3, h4, h5 {
+  margin: 0 0 var(--space-12) 0;
+}
+
+p {
+  line-height: 1.7;
+  margin-bottom: var(--space-16);
+  max-width: 700px;
+}
+
+ul, ol {
+  margin-bottom: var(--space-16);
+  padding-left: var(--space-16);
+}
+
+li {
+  margin-bottom: var(--space-10, 10px);
+}
+
+/* Section spacing */
+.section {
+  margin-bottom: var(--space-32);
+}
+
+/* Card spacing utilities */
+.card {
+  padding: var(--space-24);
+  gap: var(--space-20);
+}
+
+.card-grid {
+  display: grid;
+  gap: var(--space-20);
+}
+
+/* Two-column responsive grid */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-32);
+}
+
+@media (max-width: 1024px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Safe margins for top-level app content */
+.app-safe {
+  padding: var(--space-32);
+  min-height: 100%;
+}
+
+@media (max-width: 768px) {
+  .app-safe {
+    padding: var(--space-24);
+  }
+}
+
+/* Overflow protections */
+img, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Button spacing helpers */
+.btn-group {
+  margin-top: var(--space-20);
+  display: flex;
+  gap: var(--space-16);
+}
+
+/* Ensure internal scrollers don't cause body scroll */
+.no-viewport-overflow {
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 /* ─── Progress bar ──────────────────────────────────────────────────────────── */

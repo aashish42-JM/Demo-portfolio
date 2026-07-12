@@ -27,7 +27,8 @@ export default function AdminLogs() {
       title: form.title,
       content: form.content,
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
-      week: form.week || `Week ${getWeekNumber(now)}, ${now.getFullYear()}`,
+      week: form.week || `${new Date().toLocaleString("default", { month: "long" })} ${new Date().getFullYear()}`,
+      week_number: getWeekNumber(now),
       created_at: now.toISOString(),
     };
     setEntries((prev) => [newEntry, ...prev]);
