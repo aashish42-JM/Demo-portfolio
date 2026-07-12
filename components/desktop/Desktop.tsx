@@ -48,6 +48,8 @@ function renderApp(component: string) {
 
 export default function Desktop() {
   const [apps, setApps] = useState<AppWindow[]>(INITIAL_APPS);
+  const [startMenuOpen, setStartMenuOpen] = useState(false);
+  const [shutDownState, setShutDownState] = useState<"idle" | "confirming" | "shutdown" | "reboot">("idle");
 
   const openApp = useCallback((id: string) => {
     setApps((prev) =>
@@ -219,7 +221,78 @@ export default function Desktop() {
       </div>
 
       {/* Taskbar */}
-      <TaskbarComp apps={apps} onAppClick={handleTaskbarClick} />
+      <TaskbarComp
+        apps={apps}
+        onAppClick={handleTaskbarClick}
+        startMenuOpen={startMenuOpen}
+        setStartMenuOpen={setStartMenuOpen}
+        openApp={openApp}
+        setShutDownState={setShutDownState}
+      />
+
+      {/* Shutdown Confirmation/Overlay */}
+      {shutDownState !== "idle" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => shutDownState === "shutdown" && setShutDownState("idle")}
+        >
+          {shutDownState === "confirming" && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="glass p-8 rounded-2xl border border-[rgba(79,195,247,0.4)] shadow-[0_0_60px_rgba(79,195,247,0.2)] max-w-md w-full mx-4"
+            >
+              <h2 className="text-[#4fc3f7] font-mono text-xl mb-2">System Prompt</h2>
+              <p className="text-[#90caf9]/80 font-mono text-sm mb-6">
+                Are you sure you want to shut down AashishOS?
+              </p>
+              <div className="flex gap-4 justify-end">
+                <button
+                  onClick={() => setShutDownState("idle")}
+                  className="px-6 py-2 rounded-lg border border-white/20 text-white/70 hover:text-white hover:border-white/40 font-mono text-sm transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => setShutDownState("shutdown")}
+                  className="px-6 py-2 rounded-lg bg-[#4fc3f7]/20 border border-[#4fc3f7]/40 text-[#4fc3f7] hover:bg-[#4fc3f7]/30 font-mono text-sm transition-all"
+                >
+                  Shutdown
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {shutDownState === "shutdown" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1 }}
+              className="text-center"
+            >
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-[#4fc3f7] font-mono text-3xl mb-4"
+              >
+                System Offline...
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0, 1] }}
+                transition={{ delay: 2, duration: 2, repeat: Infinity }}
+                className="text-[#90caf9]/60 font-mono text-lg"
+              >
+                Click anywhere to boot AashishOS
+              </motion.p>
+            </motion.div>
+          )}
+        </motion.div>
+      )}
     </div>
   );
 }
