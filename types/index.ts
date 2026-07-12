@@ -74,7 +74,10 @@ export interface AppWindow {
   component: string;
   isOpen: boolean;
   isMinimized: boolean;
+  isMaximized: boolean;
   zIndex: number;
   position: { x: number; y: number };
   size: { width: number; height: number };
+  restoredPosition: { x: number; y: number };
+  restoredSize: { width: number; height: number };
 }
