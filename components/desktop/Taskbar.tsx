@@ -43,42 +43,42 @@ export default function Taskbar({ apps, onAppClick }: TaskbarProps) {
       initial={{ y: 60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.5, type: "spring", stiffness: 300, damping: 30 }}
-      className="fixed bottom-0 left-0 right-0 h-12 glass-strong border-t border-[rgba(79,195,247,0.15)] z-50
-                 flex items-center px-4 gap-2"
+      className="fixed bottom-0 left-0 right-0 h-12 glass-strong border-t border-[rgba(79,195,247,0.18)] z-50
+                 flex items-center px-6 gap-3 shadow-[0_-5px_30px_rgba(79,195,247,0.1)]"
     >
       {/* OS Logo */}
-      <div className="flex items-center gap-2 pr-3 border-r border-[rgba(79,195,247,0.15)]">
-        <div className="w-5 h-5 rounded-full bg-[#4fc3f7] shadow-[0_0_8px_#4fc3f7] animate-pulse-slow" />
+      <div className="flex items-center gap-3 pr-4 border-r border-[rgba(79,195,247,0.15)]">
+        <div className="w-5 h-5 rounded-full bg-[#4fc3f7] shadow-[0_0_12px_#4fc3f7] animate-pulse-slow" />
         <span className="font-mono text-xs text-[#4fc3f7] tracking-widest font-bold">
           AashishOS
         </span>
       </div>
 
       {/* Open apps */}
-      <div className="flex items-center gap-1 flex-1 overflow-x-auto">
+      <div className="flex items-center gap-2 flex-1 overflow-x-auto">
         {openApps.map((app) => (
           <motion.button
             key={app.id}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.08 }}
             onClick={() => onAppClick(app.id)}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-mono text-xs transition-all
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-mono text-xs transition-all
                        ${
                          app.isMinimized
-                           ? "bg-[rgba(79,195,247,0.08)] text-[#64b5f6]/60 border border-[rgba(79,195,247,0.1)]"
-                           : "bg-[rgba(79,195,247,0.15)] text-[#4fc3f7] border border-[rgba(79,195,247,0.3)]"
+                           ? "bg-[rgba(79,195,247,0.08)] text-[#64b5f6]/60 border border-[rgba(79,195,247,0.1)] hover:bg-[rgba(79,195,247,0.12)]"
+                           : "bg-[rgba(79,195,247,0.18)] text-[#4fc3f7] border border-[rgba(79,195,247,0.35)] shadow-[0_0_15px_rgba(79,195,247,0.2)]"
                        }`}
           >
             <span className="text-sm">{app.icon}</span>
-            <span className="hidden sm:inline max-w-[80px] truncate">{app.title.replace(".exe", "")}</span>
+            <span className="hidden sm:inline max-w-[100px] truncate">{app.title.replace(".exe", "")}</span>
           </motion.button>
         ))}
       </div>
 
       {/* Clock */}
-      <div className="flex flex-col items-end pl-3 border-l border-[rgba(79,195,247,0.15)]">
+      <div className="flex flex-col items-end pl-4 border-l border-[rgba(79,195,247,0.15)]">
         <span className="font-mono text-xs text-[#4fc3f7] font-bold">{time}</span>
         <span className="font-mono text-[10px] text-[#64b5f6]/60">{date}</span>
       </div>

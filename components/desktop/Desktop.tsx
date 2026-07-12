@@ -110,6 +110,44 @@ export default function Desktop() {
 
       {/* Desktop area */}
       <div className="relative flex-1 overflow-hidden">
+        {/* Floating info widget (top left) */}
+        <motion.div
+          initial={{ opacity: 0, x: -20, y: 20 }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          transition={{ delay: 0.8, type: "spring" }}
+          className="absolute top-6 left-6 z-20"
+        >
+          <div className="glass p-4 rounded-2xl border border-[rgba(79,195,247,0.3)] shadow-[0_0_30px_rgba(79,195,247,0.15)] backdrop-blur-md">
+            <p className="font-mono text-sm text-[#4fc3f7] mb-1">Welcome back, Aashish</p>
+            <p className="font-mono text-[10px] text-[#64b5f6]/70 mb-2">BSc CSIT Student | AI Developer</p>
+            <p className="font-mono text-[10px] text-[#90caf9]/50 mb-2">Building AI-powered applications</p>
+            <p className="font-mono text-[10px] text-[#4fc3f7]/40">AashishOS v1.0</p>
+          </div>
+        </motion.div>
+
+        {/* Status indicators (bottom right) */}
+        <motion.div
+          initial={{ opacity: 0, x: 20, y: -20 }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          transition={{ delay: 1, type: "spring" }}
+          className="absolute bottom-16 right-6 z-20 pointer-events-none"
+        >
+          <div className="glass px-4 py-3 rounded-2xl border border-[rgba(79,195,247,0.25)] backdrop-blur-md flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.7)]" />
+              <span className="font-mono text-[10px] text-[#90caf9]/70">System Online</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#4fc3f7] shadow-[0_0_8px_rgba(79,195,247,0.7)]" />
+              <span className="font-mono text-[10px] text-[#90caf9]/70">AI Assistant Ready</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#90caf9]/50" />
+              <span className="font-mono text-[10px] text-[#64b5f6]/60">Portfolio v1.0</span>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Flex container for sidebars and center grid */}
         <div className="flex h-full">
           {/* Left decorative sidebar */}
