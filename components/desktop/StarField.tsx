@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 
 // Helper to create seeded randomness for consistent galaxy
 class SeededRandom {
@@ -101,7 +101,7 @@ export default function StarField() {
 
     let width = 0, height = 0, centerX = 0, centerY = 0;
 
-    const generateGalaxy = useCallback(() => {
+    const generateGalaxy = () => {
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = width;
@@ -184,7 +184,7 @@ export default function StarField() {
       dustRef.current = dust;
 
       shootingStarsRef.current = [];
-    }, []);
+    };
 
     generateGalaxy();
     const handleResize = () => generateGalaxy();
