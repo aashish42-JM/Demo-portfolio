@@ -40,6 +40,7 @@ export interface LogbookEntry {
   tags: string[];
   week: string;
   created_at: string;
+  week_number: number;
 }
 
 export interface ContactMessage {

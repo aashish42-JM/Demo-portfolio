@@ -123,10 +123,42 @@ export const JOURNEY_LEVELS: JourneyLevel[] = [
 
 // ─── LOGBOOK ENTRIES ──────────────────────────────────────────────────────────
 export const LOGBOOK_ENTRIES: LogbookEntry[] = [
-  { id: "l1", title: "Started learning React hooks", content: "Deep-dived into useState, useEffect, and useContext. Built a small todo app to practice. Key insight: state management is about keeping UI in sync with data.", tags: ["React", "JavaScript", "Frontend"], week: "Week 24, 2024", created_at: "2024-06-10" },
-  { id: "l2", title: "Explored Groq API capabilities", content: "Integrated Groq's llama-3-70b model into Career-Tantra. The speed is incredible — responses in under a second. Learned about system prompts and temperature tuning.", tags: ["AI", "Groq", "Career-Tantra"], week: "Week 20, 2024", created_at: "2024-05-15" },
-  { id: "l3", title: "Built REST API with Node.js + Express", content: "Created backend routes for Career-Tantra. Learned about middleware, route handlers, and JSON file storage. Next step: move to a real database.", tags: ["Node.js", "Express", "Backend"], week: "Week 16, 2024", created_at: "2024-04-18" },
-  { id: "l4", title: "C++ OOP Deep Dive", content: "Completed Attendance Management System. Used inheritance, templates, and polymorphism. File handling with fstream. OOP really clicks now — code is so much more organized.", tags: ["C++", "OOP", "Projects"], week: "Week 36, 2023", created_at: "2023-09-05" },
+  {
+    id: "l1",
+    title: "Started learning React hooks",
+    content: "Deep-dived into useState, useEffect, and useContext. Built a small todo app to practice. Key insight: state management is about keeping UI in sync with data.",
+    tags: ["React", "JavaScript", "Frontend"],
+    week: "Week 24, 2024",
+    week_number: 24,
+    created_at: "2024-06-10"
+  },
+  {
+    id: "l2",
+    title: "Explored Groq API capabilities",
+    content: "Integrated Groq's llama-3-70b model into Career-Tantra. The speed is incredible — responses in under a second. Learned about system prompts and temperature tuning.",
+    tags: ["AI", "Groq", "Career-Tantra"],
+    week: "Week 20, 2024",
+    week_number: 20,
+    created_at: "2024-05-15"
+  },
+  {
+    id: "l3",
+    title: "Built REST API with Node.js + Express",
+    content: "Created backend routes for Career-Tantra. Learned about middleware, route handlers, and JSON file storage. Next step: move to a real database.",
+    tags: ["Node.js", "Express", "Backend"],
+    week: "Week 16, 2024",
+    week_number: 16,
+    created_at: "2024-04-18"
+  },
+  {
+    id: "l4",
+    title: "C++ OOP Deep Dive",
+    content: "Completed Attendance Management System. Used inheritance, templates, and polymorphism. File handling with fstream. OOP really clicks now — code is so much more organized.",
+    tags: ["C++", "OOP", "Projects"],
+    week: "Week 36, 2023",
+    week_number: 36,
+    created_at: "2023-09-05"
+  },
 ];
 
 // ─── AI SYSTEM PROMPT ─────────────────────────────────────────────────────────
