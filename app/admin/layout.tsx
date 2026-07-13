@@ -94,7 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <div>
               <div className="font-mono text-xs font-bold text-[#4fc3f7]">Admin Panel</div>
-              <div className="font-mono text-[9px] text-[#64b5f6]/50">AashishOS</div>
+              <div className="font-mono text-[9px] text-[#64b5f6]/50">Aashish-OS</div>
             </div>
           </div>
         </div>
