@@ -57,7 +57,7 @@ export default function ContactTerminal() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 flex flex-col p-6 gap-6">
+      <div className="flex-1 flex flex-col p-4 sm:p-6 gap-4 sm:gap-6">
         {/* Terminal log */}
         <div className="terminal flex-1 overflow-y-auto text-sm space-y-2">
           <div className="flex items-center gap-4 mb-5 pb-4 border-b border-[#4fc3f7]/25">
@@ -99,8 +99,8 @@ export default function ContactTerminal() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
             <div>
               <label className="font-mono text-xs text-[#4fc3f7]/70 block mb-3">
                 --name

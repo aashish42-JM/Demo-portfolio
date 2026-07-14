@@ -3,10 +3,14 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppWindow } from "@/types";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import StarField from "./StarField";
 import AppIcon from "./AppIcon";
 import TaskbarComp from "./Taskbar";
 import Window from "./Window";
+import MobileNav from "@/components/mobile/MobileNav";
+import MobileLauncher from "@/components/mobile/MobileLauncher";
+import MobileAppView from "@/components/mobile/MobileAppView";
 import AboutApp from "@/components/apps/AboutApp";
 import ProjectsApp from "@/components/apps/ProjectsApp";
 import SkillGalaxy from "@/components/apps/SkillGalaxy";
@@ -79,12 +83,17 @@ function renderApp(component: string) {
 }
 
 export default function Desktop() {
+  const isMobile = useIsMobile();
   const [apps, setApps] = useState<AppWindow[]>(INITIAL_APPS);
   const [focusedAppId, setFocusedAppId] = useState<string | null>(null);
   const [startMenuOpen, setStartMenuOpen] = useState(false);
   const [shutDownState, setShutDownState] = useState<"idle" | "confirming" | "shutdown" | "reboot">("idle");
   const [bootStage, setBootStage] = useState<"boot" | "welcome" | "desktop">("desktop");
   const [showDesktop, setShowDesktop] = useState(false);
+
+  // Mobile state
+  const [mobileActiveTab, setMobileActiveTab] = useState("home");
+  const [mobileOpenAppId, setMobileOpenAppId] = useState<string | null>(null);
 
   // Handle intro - skip boot screen, go straight to welcome
   useEffect(() => {
@@ -100,16 +109,19 @@ export default function Desktop() {
     setBootStage("desktop");
     setShowDesktop(true);
     if (action === "ask-ai") {
-      setApps((prev) =>
-        prev.map((app) =>
-          app.id === "ai"
-            ? { ...app, isOpen: true, isMinimized: false, isMaximized: false, zIndex: ++zCounter }
-            : app
-        )
-      );
-      setFocusedAppId("ai");
+      if (isMobile) {
+        setMobileOpenAppId("ai");
+      } else {
+        setApps((prev) =>
+          prev.map((app) =>
+            app.id === "ai"
+              ? { ...app, isOpen: true, isMinimized: false, isMaximized: false, zIndex: ++zCounter }
+              : app
+          )
+        );
+        setFocusedAppId("ai");
+      }
     }
-    // TODO: Handle resume download
   };
 
   const handleSkip = () => {
@@ -117,6 +129,7 @@ export default function Desktop() {
     setShowDesktop(true);
   };
 
+  // Desktop handlers
   const openApp = useCallback((id: string) => {
     const size = getDefaultWindowSize();
     const centeredPos = getCenteredPosition(size);
@@ -226,8 +239,42 @@ export default function Desktop() {
     setFocusedAppId(id);
   }, []);
 
+  // Mobile handlers
+  const handleMobileOpenApp = useCallback((id: string) => {
+    setMobileOpenAppId(id);
+    setApps((prev) =>
+      prev.map((app) =>
+        app.id === id ? { ...app, isOpen: true } : app
+      )
+    );
+  }, []);
+
+  const handleMobileCloseApp = useCallback(() => {
+    if (mobileOpenAppId) {
+      setApps((prev) =>
+        prev.map((app) =>
+          app.id === mobileOpenAppId ? { ...app, isOpen: false } : app
+        )
+      );
+    }
+    setMobileOpenAppId(null);
+  }, [mobileOpenAppId]);
+
+  const handleMobileTabChange = useCallback((tab: string) => {
+    setMobileActiveTab(tab);
+    if (tab === "ai") {
+      handleMobileOpenApp("ai");
+    } else if (tab === "contact") {
+      handleMobileOpenApp("contact");
+    } else if (tab === "home" || tab === "apps") {
+      handleMobileCloseApp();
+    }
+  }, [handleMobileOpenApp, handleMobileCloseApp]);
+
+  const mobileOpenApp = mobileOpenAppId ? apps.find((a) => a.id === mobileOpenAppId) : null;
+
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ paddingBottom: 48 }}>
+    <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ paddingBottom: isMobile ? 0 : 48 }}>
       {/* Boot Screens */}
       <AnimatePresence mode="wait">
         {bootStage === "boot" && (
@@ -247,142 +294,170 @@ export default function Desktop() {
       >
         {/* Background */}
         <div className="absolute inset-0 bg-[#050816]">
-          {/* Gradient overlays */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_20%,rgba(17,34,64,0.8)_0%,transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_80%,rgba(10,25,47,0.6)_0%,transparent_60%)]" />
           <StarField />
         </div>
 
-      {/* Desktop area */}
-      <div className="relative flex-1 overflow-hidden">
-        {/* Floating info widget (top left) */}
-        <motion.div
-          initial={{ opacity: 0, x: -20, y: 20 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ delay: 0.8, type: "spring" }}
-          className="absolute top-6 left-6 z-20"
-        >
-          <div className="glass p-4 rounded-2xl border border-[rgba(79,195,247,0.3)] shadow-[0_0_30px_rgba(79,195,247,0.15)] backdrop-blur-md">
-            <p className="font-mono text-sm text-[#4fc3f7] mb-1">Welcome back, Aashish</p>
-            <p className="font-mono text-[10px] text-[#64b5f6]/70 mb-2">BSc CSIT Student | AI Developer</p>
-            <p className="font-mono text-[10px] text-[#90caf9]/50 mb-3">Building AI-powered applications</p>
-            <button
-              onClick={() => {
-                localStorage.removeItem("aashishos-has-visited");
-                window.location.reload();
-              }}
-              className="font-mono text-[9px] text-[#4fc3f7]/60 hover:text-[#4fc3f7] transition-colors"
-            >
-              Replay intro
-            </button>
-          </div>
-        </motion.div>
+      {/* ═══════════════ MOBILE LAYOUT ═══════════════ */}
+      {isMobile ? (
+        <>
+          {/* Mobile Launcher (home/apps tab) */}
+          {(mobileActiveTab === "home" || mobileActiveTab === "apps") && !mobileOpenAppId && (
+            <MobileLauncher apps={apps} onOpenApp={handleMobileOpenApp} />
+          )}
 
-        {/* Status indicators (bottom right) */}
-        <motion.div
-          initial={{ opacity: 0, x: 20, y: -20 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ delay: 1, type: "spring" }}
-          className="absolute bottom-16 right-6 z-20 pointer-events-none"
-        >
-          <div className="glass px-4 py-3 rounded-2xl border border-[rgba(79,195,247,0.25)] backdrop-blur-md flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.7)]" />
-              <span className="font-mono text-[10px] text-[#90caf9]/70">System Online</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#4fc3f7] shadow-[0_0_8px_rgba(79,195,247,0.7)]" />
-              <span className="font-mono text-[10px] text-[#90caf9]/70">AI Assistant Ready</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#90caf9]/50" />
-              <span className="font-mono text-[10px] text-[#64b5f6]/60">Portfolio v1.0</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Flex container for sidebars and center grid */}
-        <div className="flex h-full">
-          {/* Left decorative sidebar */}
-          <div className="flex flex-col justify-center items-center w-24 gap-4 pointer-events-none">
-            {[1, 2, 3].map((i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1 + i * 0.1 }}
-                className="w-12 h-12 rounded-full bg-gradient-to-br from-[rgba(79,195,247,0.15)] to-[rgba(17,34,64,0.6)] border border-[rgba(79,195,247,0.2)] backdrop-blur-sm flex items-center justify-center text-[#4fc3f7]/40"
+          {/* Mobile Fullscreen App View */}
+          <AnimatePresence>
+            {mobileOpenApp && (
+              <MobileAppView
+                key={mobileOpenApp.id}
+                app={mobileOpenApp}
+                onClose={handleMobileCloseApp}
               >
-                {["◈", "◇", "✧"][i - 1]}
+                {renderApp(mobileOpenApp.component)}
+              </MobileAppView>
+            )}
+          </AnimatePresence>
+
+          {/* Mobile Bottom Nav */}
+          <MobileNav activeTab={mobileActiveTab} onTabChange={handleMobileTabChange} />
+        </>
+      ) : (
+      /* ═══════════════ DESKTOP LAYOUT ═══════════════ */
+      <>
+        {/* Desktop area */}
+        <div className="relative flex-1 overflow-hidden">
+          {/* Floating info widget (top left) */}
+          <motion.div
+            initial={{ opacity: 0, x: -20, y: 20 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ delay: 0.8, type: "spring" }}
+            className="absolute top-6 left-6 z-20"
+          >
+            <div className="glass p-4 rounded-2xl border border-[rgba(79,195,247,0.3)] shadow-[0_0_30px_rgba(79,195,247,0.15)] backdrop-blur-md">
+              <p className="font-mono text-sm text-[#4fc3f7] mb-1">Welcome back, Aashish</p>
+              <p className="font-mono text-[10px] text-[#64b5f6]/70 mb-2">BSc CSIT Student | AI Developer</p>
+              <p className="font-mono text-[10px] text-[#90caf9]/50 mb-3">Building AI-powered applications</p>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("aashishos-has-visited");
+                  window.location.reload();
+                }}
+                className="font-mono text-[9px] text-[#4fc3f7]/60 hover:text-[#4fc3f7] transition-colors"
+              >
+                Replay intro
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Status indicators (bottom right) */}
+          <motion.div
+            initial={{ opacity: 0, x: 20, y: -20 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ delay: 1, type: "spring" }}
+            className="absolute bottom-16 right-6 z-20 pointer-events-none"
+          >
+            <div className="glass px-4 py-3 rounded-2xl border border-[rgba(79,195,247,0.25)] backdrop-blur-md flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.7)]" />
+                <span className="font-mono text-[10px] text-[#90caf9]/70">System Online</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[#4fc3f7] shadow-[0_0_8px_rgba(79,195,247,0.7)]" />
+                <span className="font-mono text-[10px] text-[#90caf9]/70">AI Assistant Ready</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[#90caf9]/50" />
+                <span className="font-mono text-[10px] text-[#64b5f6]/60">Portfolio v1.0</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Flex container for sidebars and center grid */}
+          <div className="flex h-full">
+            {/* Left decorative sidebar */}
+            <div className="flex flex-col justify-center items-center w-24 gap-4 pointer-events-none">
+              {[1, 2, 3].map((i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1 + i * 0.1 }}
+                  className="w-12 h-12 rounded-full bg-gradient-to-br from-[rgba(79,195,247,0.15)] to-[rgba(17,34,64,0.6)] border border-[rgba(79,195,247,0.2)] backdrop-blur-sm flex items-center justify-center text-[#4fc3f7]/40"
+                >
+                  {["◈", "◇", "✧"][i - 1]}
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Center: welcome message and app grid */}
+            <div className="flex-1 relative">
+              {/* Welcome message */}
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 }}
+                className="absolute top-6 left-1/2 -translate-x-1/2 text-center z-10 pointer-events-none"
+              >
+                <p className="font-mono text-xs text-[#4fc3f7]/30 tracking-[0.3em] uppercase">
+                  Welcome to AashishOS v1.0 — Click any app to begin
+                </p>
               </motion.div>
-            ))}
-          </div>
 
-          {/* Center: welcome message and app grid */}
-          <div className="flex-1 relative">
-            {/* Welcome message */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="absolute top-6 left-1/2 -translate-x-1/2 text-center z-10 pointer-events-none"
-            >
-              <p className="font-mono text-xs text-[#4fc3f7]/30 tracking-[0.3em] uppercase">
-                Welcome to AashishOS v1.0 — Click any app to begin
-              </p>
-            </motion.div>
+              {/* App icons grid */}
+              <div className="desktop-grid">
+                {apps.map((app, index) => (
+                  <AppIcon key={app.id} app={app} onOpen={openApp} index={index} />
+                ))}
+              </div>
+            </div>
 
-            {/* App icons grid */}
-            <div className="desktop-grid">
-              {apps.map((app, index) => (
-                <AppIcon key={app.id} app={app} onOpen={openApp} index={index} />
+            {/* Right decorative sidebar */}
+            <div className="flex flex-col justify-center items-center w-24 gap-4 pointer-events-none">
+              {[1, 2, 3].map((i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.2 + i * 0.1 }}
+                  className="w-12 h-12 rounded-full bg-gradient-to-br from-[rgba(79,195,247,0.15)] to-[rgba(17,34,64,0.6)] border border-[rgba(79,195,247,0.2)] backdrop-blur-sm flex items-center justify-center text-[#4fc3f7]/40"
+                >
+                  {["✦", "◆", "✧"][i - 1]}
+                </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Right decorative sidebar */}
-          <div className="flex flex-col justify-center items-center w-24 gap-4 pointer-events-none">
-            {[1, 2, 3].map((i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.2 + i * 0.1 }}
-                className="w-12 h-12 rounded-full bg-gradient-to-br from-[rgba(79,195,247,0.15)] to-[rgba(17,34,64,0.6)] border border-[rgba(79,195,247,0.2)] backdrop-blur-sm flex items-center justify-center text-[#4fc3f7]/40"
-              >
-                {["✦", "◆", "✧"][i - 1]}
-              </motion.div>
-            ))}
-          </div>
+          {/* Windows */}
+          {apps.map((app) => (
+            <Window
+              key={app.id}
+              window={app}
+              isFocused={focusedAppId === app.id}
+              onClose={closeApp}
+              onMinimize={minimizeApp}
+              onFocus={focusApp}
+              onMove={moveApp}
+              onResize={resizeApp}
+              onToggleMaximize={toggleMaximize}
+            >
+              {app.isOpen && !app.isMinimized && renderApp(app.component)}
+            </Window>
+          ))}
         </div>
 
-        {/* Windows */}
-        {apps.map((app) => (
-          <Window
-            key={app.id}
-            window={app}
-            isFocused={focusedAppId === app.id}
-            onClose={closeApp}
-            onMinimize={minimizeApp}
-            onFocus={focusApp}
-            onMove={moveApp}
-            onResize={resizeApp}
-            onToggleMaximize={toggleMaximize}
-          >
-            {app.isOpen && !app.isMinimized && renderApp(app.component)}
-          </Window>
-        ))}
-      </div>
-
-      {/* Taskbar */}
-      <TaskbarComp
-        apps={apps}
-        onAppClick={handleTaskbarClick}
-        startMenuOpen={startMenuOpen}
-        setStartMenuOpen={setStartMenuOpen}
-        openApp={openApp}
-        setShutDownState={setShutDownState}
-      />
+        {/* Taskbar */}
+        <TaskbarComp
+          apps={apps}
+          onAppClick={handleTaskbarClick}
+          startMenuOpen={startMenuOpen}
+          setStartMenuOpen={setStartMenuOpen}
+          openApp={openApp}
+          setShutDownState={setShutDownState}
+        />
+      </>
+      )}
 
       {/* Shutdown Confirmation/Overlay */}
       {shutDownState !== "idle" && (

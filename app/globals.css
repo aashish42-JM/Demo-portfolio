@@ -424,3 +424,32 @@ img, video, canvas {
     padding: 16px;
   }
 }
+
+/* ─── Mobile Safe Areas ──────────────────────────────────────────────────────── */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ─── Mobile touch improvements ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .window-titlebar {
+    cursor: default;
+  }
+
+  .lab-card:hover {
+    transform: none;
+  }
+
+  .mission-card:hover {
+    transform: none;
+  }
+}

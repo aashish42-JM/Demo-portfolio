@@ -235,8 +235,8 @@ export default function SkillGalaxy() {
         </AnimatePresence>
 
         {/* Legend */}
-        <div className="absolute top-6 right-6 glass rounded-2xl p-6 text-sm space-y-3">
-          <div className="font-mono text-xs text-[#4fc3f7]/70 uppercase tracking-widest mb-4">// Legend</div>
+        <div className="absolute top-3 right-3 sm:top-6 sm:right-6 glass rounded-xl sm:rounded-2xl p-3 sm:p-6 text-xs sm:text-sm space-y-2 sm:space-y-3 hidden sm:block">
+          <div className="font-mono text-[10px] sm:text-xs text-[#4fc3f7]/70 uppercase tracking-widest mb-2 sm:mb-4">// Legend</div>
           {[
             { label: "Advanced", color: "text-purple-400" },
             { label: "Intermediate", color: "text-green-400" },

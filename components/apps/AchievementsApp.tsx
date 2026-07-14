@@ -9,18 +9,18 @@ export default function AchievementsApp() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 overflow-y-auto p-10">
-        <div className="flex items-center gap-5 mb-8">
-          <Trophy className="text-yellow-400" size={36} />
+      <div className="flex-1 overflow-y-auto p-4 sm:p-10">
+        <div className="flex items-center gap-3 sm:gap-5 mb-5 sm:mb-8">
+          <Trophy className="text-yellow-400" size={30} />
           <div>
-            <h1 className="text-3xl font-bold text-white">Achievements</h1>
-            <p className="font-mono text-sm text-[#64b5f6]/70">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Achievements</h1>
+            <p className="font-mono text-xs sm:text-sm text-[#64b5f6]/70">
               {unlocked.length}/{ACHIEVEMENTS.length} unlocked
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6">
           {ACHIEVEMENTS.map((achievement, index) => {
             const isUnlocked = !!achievement.unlocked_at;
             return (
@@ -29,7 +29,7 @@ export default function AchievementsApp() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.07, type: "spring", stiffness: 300 }}
-                className={`glass p-6 rounded-2xl border text-center transition-all hover:scale-105
+                className={`glass p-4 sm:p-6 rounded-2xl border text-center transition-all hover:scale-105
                             ${
                               isUnlocked
                                 ? "border-yellow-400/35 bg-yellow-400/8 hover:border-yellow-400/55 hover:shadow-[0_0_30px_rgba(251,191,36,0.15)]"
@@ -37,20 +37,20 @@ export default function AchievementsApp() {
                             }`}
               >
                 <div
-                  className={`text-6xl mb-4 ${isUnlocked ? "" : "grayscale opacity-30"}`}
+                  className={`text-4xl sm:text-6xl mb-2 sm:mb-4 ${isUnlocked ? "" : "grayscale opacity-30"}`}
                 >
                   {achievement.icon}
                 </div>
                 <h3
-                  className={`font-bold text-xl mb-3 ${isUnlocked ? "text-yellow-400/95" : "text-white/35"}`}
+                  className={`font-bold text-sm sm:text-xl mb-2 sm:mb-3 ${isUnlocked ? "text-yellow-400/95" : "text-white/35"}`}
                 >
                   {achievement.title}
                 </h3>
-                <p className={`text-sm leading-relaxed ${isUnlocked ? "text-[#64b5f6]/80" : "text-white/25"}`}>
+                <p className={`text-[10px] sm:text-sm leading-relaxed ${isUnlocked ? "text-[#64b5f6]/80" : "text-white/25"}`}>
                   {achievement.description}
                 </p>
                 {isUnlocked && achievement.unlocked_at && (
-                  <div className="mt-5 font-mono text-xs text-yellow-400/60">
+                  <div className="mt-3 sm:mt-5 font-mono text-[9px] sm:text-xs text-yellow-400/60">
                     UNLOCKED{" "}
                     {new Date(achievement.unlocked_at).toLocaleDateString("en-US", {
                       month: "short",
@@ -59,7 +59,7 @@ export default function AchievementsApp() {
                   </div>
                 )}
                 {!isUnlocked && (
-                  <div className="mt-5 font-mono text-xs text-white/25">🔒 LOCKED</div>
+                  <div className="mt-3 sm:mt-5 font-mono text-[9px] sm:text-xs text-white/25">🔒 LOCKED</div>
                 )}
               </motion.div>
             );

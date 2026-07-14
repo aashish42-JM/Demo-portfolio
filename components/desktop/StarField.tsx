@@ -99,6 +99,7 @@ export default function StarField() {
     if (!ctx) return;
 
     let width = 0, height = 0, centerX = 0, centerY = 0;
+    let isMobile = window.innerWidth < 768;
 
     // Helper to get desktop icon positions
     const getDesktopIconPositions = () => {
@@ -130,8 +131,11 @@ export default function StarField() {
 
       iconsRef.current = getDesktopIconPositions();
 
-      // Calculate total particles: reduce by ~35% from original 7500 (4 layers × ~1875 each) → ~4875
-      const totalParticles = 4800;
+      // Recalculate mobile state on resize
+      isMobile = window.innerWidth < 768;
+
+      // Calculate total particles: ~4800 on desktop, ~2880 on mobile (40% reduction)
+      const totalParticles = isMobile ? 2880 : 4800;
       const bgCount = Math.floor(totalParticles * 0.6);
       const midCount = Math.floor(totalParticles * 0.3);
       const fgCount = totalParticles - bgCount - midCount;
@@ -239,9 +243,10 @@ export default function StarField() {
         "rgba(124, 58, 237, 0.04)"
       );
 
-      // Energy pulses
+      // Energy pulses - less frequent on mobile
       const now = currentTime;
-      if (!reducedMotion && now - lastPulseRef.current > 12000 + Math.random() * 8000) {
+      const pulseInterval = isMobile ? 18000 + Math.random() * 12000 : 12000 + Math.random() * 8000;
+      if (!reducedMotion && now - lastPulseRef.current > pulseInterval) {
         lastPulseRef.current = now;
         pulsesRef.current.push({
           x: Math.random() * width,
@@ -269,8 +274,9 @@ export default function StarField() {
         return true;
       });
 
-      // Shooting particles - more frequent
-      if (!reducedMotion && now - lastShootRef.current > 3000 + Math.random() * 5000) {
+      // Shooting particles - more frequent on desktop, less on mobile
+      const shootInterval = isMobile ? 5000 + Math.random() * 8000 : 3000 + Math.random() * 5000;
+      if (!reducedMotion && now - lastShootRef.current > shootInterval) {
         lastShootRef.current = now;
         const angle = Math.random() * Math.PI * 2;
         shootingRef.current.push({
@@ -321,8 +327,9 @@ export default function StarField() {
         return true;
       });
 
-      // Energy orbs
-      if (!reducedMotion && orbsRef.current.length < 4 && Math.random() < 0.003) {
+      // Energy orbs - reduce on mobile
+      const maxOrbs = isMobile ? 2 : 4;
+      if (!reducedMotion && orbsRef.current.length < maxOrbs && Math.random() < 0.003) {
         orbsRef.current.push({
           x: Math.random() * width,
           y: Math.random() * height,
