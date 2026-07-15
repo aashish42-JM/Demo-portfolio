@@ -1,4 +1,7 @@
 import { Project, Mission, Achievement, LogbookEntry, Skill, JourneyLevel } from "@/types";
+import { APP_DEFINITIONS } from "./app-definitions";
+
+export const APP_REGISTRY = Object.values(APP_DEFINITIONS);
 
 // ─── PERSONAL DATA ────────────────────────────────────────────────────────────
 export const PERSONAL = {

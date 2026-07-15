@@ -263,12 +263,12 @@ export default function Desktop() {
     );
   }, []);
 
-  const handleMobileTabChange = useCallback((tab: string) => {
+  const handleMobileTabChange = useCallback((tab: "home" | "ai" | "contact") => {
     if (tab === "home") {
       setMobileActiveTab("home");
       setMobileOpenAppId(null);
       setApps((prev) => prev.map((app) => ({ ...app, isOpen: false })));
-    } else if (tab === "core") {
+    } else if (tab === "ai") {
       setMobileActiveTab("galaxy");
       setMobileOpenAppId(null);
       setApps((prev) => prev.map((app) => ({ ...app, isOpen: false })));
@@ -332,7 +332,7 @@ export default function Desktop() {
           {/* Home Dashboard */}
           <AnimatePresence mode="wait">
             {showHomeDashboard && (
-              <HomeDashboard key="home" />
+              <HomeDashboard key="home" onOpenGalaxy={() => handleMobileTabChange("ai")} />
             )}
           </AnimatePresence>
 
@@ -342,7 +342,6 @@ export default function Desktop() {
               <GalaxyLauncher
                 key="galaxy"
                 onOpenApp={handleMobileOpenFromGalaxy}
-                onOpenAI={() => handleMobileOpenApp("ai")}
               />
             )}
           </AnimatePresence>
@@ -352,7 +351,8 @@ export default function Desktop() {
             {mobileOpenApp && (
               <MobileAppView
                 key={`app-${mobileAppKey}`}
-                app={mobileOpenApp}
+                title={mobileOpenApp.title.replace(".exe", "")}
+                icon={mobileOpenApp.icon}
                 onClose={handleMobileCloseApp}
               >
                 {renderApp(mobileOpenApp.component)}
@@ -361,7 +361,10 @@ export default function Desktop() {
           </AnimatePresence>
 
           {/* Mobile Bottom Nav */}
-          <MobileNav activeTab={mobileActiveTab} onTabChange={handleMobileTabChange} />
+          <MobileNav
+            activeTab={mobileActiveTab === "home" ? "home" : mobileActiveTab === "contact" ? "contact" : "ai"}
+            onTabChange={handleMobileTabChange}
+          />
 
           {/* Floating AI Button */}
           <AnimatePresence>

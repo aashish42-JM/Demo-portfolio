@@ -1,212 +1,246 @@
 "use client";
 
-import { useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { APP_REGISTRY } from "@/lib/data";
+import { APP_DEFINITIONS } from "@/lib/app-definitions";
 import AICoreOrb from "./AICoreOrb";
 
 interface GalaxyLauncherProps {
-  onOpenApp: (id: string) => void;
-  onOpenAI: () => void;
+  onOpenApp: (appId: string) => void;
 }
 
-interface PlanetData {
-  id: string;
-  title: string;
-  icon: string;
-  color: string;
-  glowColor: string;
-  orbitRadius: number;
-  orbitSpeed: number;
-  startAngle: number;
-  size: number;
-}
+const ORBIT_RADIUS = 110;
+const ORBIT_SPEED = 50;
+const APP_SIZE = 42;
 
-const APPS: Omit<PlanetData, "orbitRadius" | "orbitSpeed" | "startAngle" | "size">[] = [
-  { id: "about", title: "About", icon: "👨‍💻", color: "#4fc3f7", glowColor: "rgba(79,195,247,0.4)" },
-  { id: "projects", title: "Projects", icon: "🧪", color: "#818cf8", glowColor: "rgba(129,140,248,0.4)" },
-  { id: "skills", title: "Skills", icon: "🪐", color: "#a78bfa", glowColor: "rgba(167,139,250,0.4)" },
-  { id: "journey", title: "Journey", icon: "⚔️", color: "#fbbf24", glowColor: "rgba(251,191,36,0.4)" },
-  { id: "logbook", title: "Logbook", icon: "📖", color: "#34d399", glowColor: "rgba(52,211,153,0.4)" },
-  { id: "missions", title: "Missions", icon: "🎯", color: "#f87171", glowColor: "rgba(248,113,113,0.4)" },
-  { id: "achievements", title: "Awards", icon: "🏆", color: "#fbbf24", glowColor: "rgba(251,191,36,0.4)" },
-];
+export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
+  const [expanded, setExpanded] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<string | null>(null);
 
-export default function GalaxyLauncher({ onOpenApp, onOpenAI }: GalaxyLauncherProps) {
-  const planets = useMemo<PlanetData[]>(() => {
-    const baseRadius = 120;
-    return APPS.map((app, i) => ({
-      ...app,
-      orbitRadius: baseRadius + (i % 2) * 25,
-      orbitSpeed: 40 + i * 8,
-      startAngle: (i / APPS.length) * Math.PI * 2,
-      size: 52 + (i % 3) * 4,
-    }));
+  const mobileApps = APP_REGISTRY.filter((app) => {
+    const def = APP_DEFINITIONS[app.id];
+    return def?.mobile !== false;
+  }).slice(0, 7);
+
+  // Auto-expand on mount
+  useEffect(() => {
+    const t = setTimeout(() => setExpanded(true), 350);
+    return () => clearTimeout(t);
   }, []);
+
+  const handleCoreTap = useCallback(() => {
+    setExpanded((prev) => !prev);
+  }, []);
+
+  const orbitDiameter = (ORBIT_RADIUS + APP_SIZE / 2) * 2;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.5 }}
-      className="absolute inset-0 flex items-center justify-center overflow-hidden"
-      style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))" }}
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 flex flex-col"
+      style={{ paddingBottom: "calc(72px + env(safe-area-inset-bottom, 0px))" }}
     >
-      {/* Center container for orbital system */}
-      <div className="relative" style={{ width: 340, height: 340 }}>
-        {/* Orbit rings */}
-        <div
-          className="absolute rounded-full border border-[rgba(79,195,247,0.06)]"
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.4 }}
+        className="flex-none pt-14 pb-2 px-6"
+      >
+        <h1 className="font-mono text-[18px] font-light text-white/90 tracking-[0.08em] text-center">
+          Aashish<span className="text-[#4fc3f7]">OS</span>
+        </h1>
+        <p className="font-mono text-[9px] text-[#90caf9]/25 text-center tracking-[0.18em] mt-1 uppercase">
+          {expanded ? "Tap Core to Collapse" : "Tap Core to Explore"}
+        </p>
+      </motion.div>
+
+      {/* Galaxy Container — flex centers the orbit system */}
+      <div className="flex-1 relative">
+        {/* Orbit ring — visual guide */}
+        <motion.div
+          className="absolute rounded-full pointer-events-none"
           style={{
-            width: 240,
-            height: 240,
-            top: "50%",
+            width: ORBIT_RADIUS * 2 + APP_SIZE + 20,
+            height: ORBIT_RADIUS * 2 + APP_SIZE + 20,
             left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        />
-        <div
-          className="absolute rounded-full border border-[rgba(79,195,247,0.04)]"
-          style={{
-            width: 290,
-            height: 290,
             top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
+            marginLeft: -(ORBIT_RADIUS * 2 + APP_SIZE + 20) / 2,
+            marginTop: -(ORBIT_RADIUS * 2 + APP_SIZE + 20) / 2,
+            border: "1px solid rgba(79,195,247,0.06)",
           }}
+          animate={{
+            opacity: expanded ? 1 : 0,
+            scale: expanded ? 1 : 0.5,
+          }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         />
 
-        {/* AI Core Orb at center */}
+        {/* ─── Orbit Container — centered, rotates when expanded ─── */}
         <div
-          className="absolute z-20"
+          className="absolute pointer-events-none"
           style={{
-            top: "50%",
+            width: orbitDiameter,
+            height: orbitDiameter,
             left: "50%",
-            transform: "translate(-50%, -50%)",
+            top: "50%",
+            marginLeft: -orbitDiameter / 2,
+            marginTop: -orbitDiameter / 2,
+            animation: expanded ? `spin ${ORBIT_SPEED}s linear infinite` : "none",
           }}
         >
-          <AICoreOrb onTap={onOpenAI} size={110} />
+          {mobileApps.map((app, i) => {
+            const angle = (i / mobileApps.length) * Math.PI * 2 - Math.PI / 2;
+            const targetX = Math.cos(angle) * ORBIT_RADIUS;
+            const targetY = Math.sin(angle) * ORBIT_RADIUS;
+            const isSelected = selectedApp === app.id;
+
+            return (
+              <div
+                key={app.id}
+                className="absolute pointer-events-auto"
+                style={{
+                  width: APP_SIZE,
+                  height: APP_SIZE,
+                  left: "50%",
+                  top: "50%",
+                  marginLeft: -APP_SIZE / 2,
+                  marginTop: -APP_SIZE / 2,
+                  // Counter-rotate to keep icon upright
+                  animation: expanded
+                    ? `counter-spin ${ORBIT_SPEED}s linear infinite`
+                    : "none",
+                }}
+              >
+                <motion.button
+                  type="button"
+                  onClick={() => {
+                    setSelectedApp(app.id);
+                    onOpenApp(app.id);
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                  className="outline-none"
+                  style={{ width: APP_SIZE, height: APP_SIZE }}
+                  animate={{
+                    x: expanded ? targetX : 0,
+                    y: expanded ? targetY : 0,
+                    opacity: expanded ? 1 : 0,
+                    scale: expanded ? 1 : 0.2,
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 90,
+                    damping: 13,
+                    delay: expanded ? i * 0.055 : (mobileApps.length - 1 - i) * 0.035,
+                  }}
+                >
+                  {/* Planet body */}
+                  <div
+                    className="w-full h-full rounded-full flex items-center justify-center transition-shadow duration-300"
+                    style={{
+                      background: `radial-gradient(circle at 35% 35%, ${app.color}45, ${app.color}15)`,
+                      boxShadow: isSelected
+                        ? `0 0 24px ${app.color}80, inset 0 0 12px ${app.color}30`
+                        : `0 0 10px ${app.color}30, inset 0 0 6px ${app.color}12`,
+                      border: `1px solid ${app.color}${isSelected ? "80" : "30"}`,
+                    }}
+                  >
+                    <span
+                      className="text-base"
+                      style={{ filter: "drop-shadow(0 0 3px rgba(0,0,0,0.5))" }}
+                    >
+                      {app.icon}
+                    </span>
+                  </div>
+
+                  {/* Label */}
+                  <div
+                    className="absolute left-1/2 -translate-x-1/2 font-mono text-[7px] text-[#90caf9]/40 tracking-wider whitespace-nowrap"
+                    style={{ top: APP_SIZE + 3 }}
+                  >
+                    {app.name}
+                  </div>
+
+                  {/* Moon */}
+                  <div
+                    className="absolute w-1 h-1 rounded-full"
+                    style={{
+                      background: `${app.color}45`,
+                      boxShadow: `0 0 3px ${app.color}30`,
+                      top: -6,
+                      left: "50%",
+                      marginLeft: -2,
+                    }}
+                  />
+                </motion.button>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Orbiting planets */}
-        {planets.map((planet) => (
-          <OrbitingPlanet
-            key={planet.id}
-            planet={planet}
-            onTap={() => onOpenApp(planet.id)}
-          />
-        ))}
-      </div>
-    </motion.div>
-  );
-}
-
-function OrbitingPlanet({
-  planet,
-  onTap,
-}: {
-  planet: PlanetData;
-  onTap: () => void;
-}) {
-  const containerSize = 340;
-  const center = containerSize / 2;
-
-  return (
-    <motion.div
-      className="absolute"
-      style={{
-        width: planet.size,
-        height: planet.size,
-        top: center - planet.size / 2,
-        left: center - planet.size / 2,
-      }}
-      initial={{ opacity: 0, scale: 0 }}
-      animate={{
-        opacity: 1,
-        scale: 1,
-      }}
-      transition={{ delay: 0.3 + Math.random() * 0.3, type: "spring", stiffness: 200, damping: 20 }}
-    >
-      {/* Orbital motion wrapper */}
-      <motion.div
-        className="w-full h-full"
-        animate={{
-          x: [
-            Math.cos(planet.startAngle) * planet.orbitRadius,
-            Math.cos(planet.startAngle + Math.PI * 0.5) * planet.orbitRadius,
-            Math.cos(planet.startAngle + Math.PI) * planet.orbitRadius,
-            Math.cos(planet.startAngle + Math.PI * 1.5) * planet.orbitRadius,
-            Math.cos(planet.startAngle + Math.PI * 2) * planet.orbitRadius,
-          ],
-          y: [
-            Math.sin(planet.startAngle) * planet.orbitRadius,
-            Math.sin(planet.startAngle + Math.PI * 0.5) * planet.orbitRadius,
-            Math.sin(planet.startAngle + Math.PI) * planet.orbitRadius,
-            Math.sin(planet.startAngle + Math.PI * 1.5) * planet.orbitRadius,
-            Math.sin(planet.startAngle + Math.PI * 2) * planet.orbitRadius,
-          ],
-        }}
-        transition={{
-          duration: planet.orbitSpeed,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-      >
-        <motion.button
-          onClick={onTap}
-          whileTap={{ scale: 0.88 }}
-          className="w-full h-full rounded-full flex flex-col items-center justify-center relative"
+        {/* ─── Central AI Core — perfectly centered ─── */}
+        <div
+          className="absolute z-10"
           style={{
-            background: `radial-gradient(circle at 35% 30%, ${planet.glowColor}, rgba(17,34,64,0.8) 60%, rgba(5,8,22,0.95) 100%)`,
-            boxShadow: `
-              0 0 20px ${planet.glowColor},
-              0 0 40px ${planet.glowColor.replace("0.4", "0.15")},
-              inset 0 0 15px rgba(79,195,247,0.1)
-            `,
-            border: `1px solid ${planet.glowColor.replace("0.4", "0.25")}`,
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
           }}
         >
-          {/* Specular highlight */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              top: "15%",
-              left: "20%",
-              width: "30%",
-              height: "20%",
-              background: "radial-gradient(ellipse, rgba(255,255,255,0.12) 0%, transparent 70%)",
-              transform: "rotate(-20deg)",
-              filter: "blur(2px)",
-            }}
-          />
-
-          <span className="text-[18px] leading-none mb-0.5">{planet.icon}</span>
-          <span
-            className="font-mono text-[7px] tracking-wide leading-none"
-            style={{ color: planet.color, opacity: 0.8 }}
-          >
-            {planet.title}
-          </span>
-
-          {/* Tiny orbiting moon */}
           <motion.div
-            className="absolute w-1.5 h-1.5 rounded-full"
+            animate={{ scale: expanded ? 1 : 0.92 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          >
+            <AICoreOrb size={76} onTap={handleCoreTap} />
+          </motion.div>
+        </div>
+      </div>
+
+      {/* App preview toast */}
+      <AnimatePresence>
+        {selectedApp && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.25 }}
+            className="flex-none mx-6 mb-4 px-5 py-3 rounded-2xl"
             style={{
-              background: planet.color,
-              boxShadow: `0 0 4px ${planet.glowColor}`,
-              top: "50%",
-              left: "50%",
-              marginTop: -3,
-              marginLeft: -3,
+              background:
+                "linear-gradient(135deg, rgba(17,34,64,0.6) 0%, rgba(10,25,47,0.5) 100%)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              border: "1px solid rgba(79,195,247,0.12)",
             }}
-            animate={{
-              x: [Math.cos(0) * (planet.size * 0.65), Math.cos(Math.PI) * (planet.size * 0.65), Math.cos(Math.PI * 2) * (planet.size * 0.65)],
-              y: [Math.sin(0) * (planet.size * 0.65), Math.sin(Math.PI) * (planet.size * 0.65), Math.sin(Math.PI * 2) * (planet.size * 0.65)],
-            }}
-            transition={{ duration: 6 + Math.random() * 4, repeat: Infinity, ease: "linear" }}
-          />
-        </motion.button>
-      </motion.div>
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-lg">{APP_DEFINITIONS[selectedApp]?.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-[12px] text-[#90caf9]/80 truncate">
+                  {APP_DEFINITIONS[selectedApp]?.name}
+                </p>
+                <p className="font-mono text-[9px] text-[#4fc3f7]/30 truncate mt-0.5">
+                  {APP_DEFINITIONS[selectedApp]?.description}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenApp(selectedApp);
+                }}
+                className="px-3 py-1.5 rounded-xl font-mono text-[9px] text-[#4fc3f7] active:bg-[#4fc3f7]/10 transition-colors"
+                style={{ border: "1px solid rgba(79,195,247,0.2)" }}
+              >
+                Open
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
