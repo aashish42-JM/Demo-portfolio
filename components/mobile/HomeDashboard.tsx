@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MISSIONS, PERSONAL } from "@/lib/data";
+import { MISSIONS } from "@/lib/data";
 import AICoreOrb from "./AICoreOrb";
 
 const ROTATING_MESSAGES = [
@@ -91,10 +91,7 @@ export default function HomeDashboard({ onOpenGalaxy }: HomeDashboardProps) {
             {dateStr}
           </div>
           <p className="font-mono text-[13px] text-[#90caf9]/55 mt-4 tracking-wide">
-            {greeting},{" "}
-            <span className="text-[#4fc3f7]/75">
-              {PERSONAL.name.split(" ")[0]}
-            </span>
+            {greeting}
           </p>
         </motion.div>
       </div>

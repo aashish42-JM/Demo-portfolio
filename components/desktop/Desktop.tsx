@@ -382,7 +382,7 @@ export default function Desktop() {
             className="absolute top-6 left-6 z-20"
           >
             <div className="glass p-4 rounded-2xl border border-[rgba(79,195,247,0.3)] shadow-[0_0_30px_rgba(79,195,247,0.15)] backdrop-blur-md">
-              <p className="font-mono text-sm text-[#4fc3f7] mb-1">Welcome back, Aashish</p>
+              <p className="font-mono text-sm text-[#4fc3f7] mb-1">Welcome to AashishOS</p>
               <p className="font-mono text-[10px] text-[#64b5f6]/70 mb-2">BSc CSIT Student | AI Developer</p>
               <p className="font-mono text-[10px] text-[#90caf9]/50 mb-3">Building AI-powered applications</p>
               <button
