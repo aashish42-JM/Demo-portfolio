@@ -1,119 +1,128 @@
 "use client";
 
-import { useRef, useCallback } from "react";
-import { motion } from "framer-motion";
+import { useRef, useCallback, useState } from "react";
+import { motion, useMotionValue } from "framer-motion";
 
 interface FloatingAIButtonProps {
   onTap: () => void;
-  onLongPress: () => void;
 }
 
-export default function FloatingAIButton({ onTap, onLongPress }: FloatingAIButtonProps) {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const isLongPressRef = useRef(false);
+export default function FloatingAIButton({ onTap }: FloatingAIButtonProps) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const dragRef = useRef(false);
 
   const handlePointerDown = useCallback(() => {
-    isLongPressRef.current = false;
-    timerRef.current = setTimeout(() => {
-      isLongPressRef.current = true;
-      onLongPress();
-    }, 500);
-  }, [onLongPress]);
+    dragRef.current = false;
+  }, []);
 
-  const handlePointerUp = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    if (!isLongPressRef.current) {
+  const handleDragStart = useCallback(() => {
+    dragRef.current = true;
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    // If user dragged, don't fire tap
+    setTimeout(() => {
+      dragRef.current = false;
+    }, 50);
+  }, []);
+
+  const handleTap = useCallback(() => {
+    if (!dragRef.current) {
       onTap();
     }
   }, [onTap]);
 
-  const handlePointerLeave = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  }, []);
-
   return (
-    <motion.button
+    <motion.div
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0, opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 22 }}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerLeave}
-      className="fixed z-50 flex items-center justify-center"
+      drag
+      dragMomentum={false}
+      dragElastic={0}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      className="fixed z-50"
       style={{
         bottom: "calc(82px + env(safe-area-inset-bottom, 0px))",
         right: "20px",
-        width: 52,
-        height: 52,
+        x,
+        y,
+        touchAction: "none",
       }}
-      whileTap={{ scale: 0.9 }}
     >
-      {/* Outer glow */}
-      <div
-        className="absolute inset-[-6px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, rgba(79,195,247,0.2) 0%, transparent 70%)",
-          filter: "blur(4px)",
-        }}
-      />
-
-      {/* Pulse ring */}
-      <motion.div
-        className="absolute inset-[-3px] rounded-full border border-[rgba(79,195,247,0.3)]"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.4, 0.1, 0.4],
-        }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      {/* Button body */}
-      <div
-        className="relative w-full h-full rounded-full flex items-center justify-center"
-        style={{
-          background: "radial-gradient(circle at 35% 30%, rgba(79,195,247,0.35), rgba(17,34,64,0.9) 60%, rgba(5,8,22,0.95))",
-          boxShadow: `
-            0 0 20px rgba(79,195,247,0.3),
-            0 0 40px rgba(79,195,247,0.12),
-            inset 0 0 12px rgba(79,195,247,0.15)
-          `,
-          border: "1px solid rgba(79,195,247,0.3)",
-        }}
+      <motion.button
+        type="button"
+        onPointerDown={handlePointerDown}
+        onClick={handleTap}
+        whileTap={{ scale: 0.88 }}
+        className="relative flex items-center justify-center"
+        style={{ width: 56, height: 56 }}
       >
-        {/* Rotating ring */}
-        <motion.div
-          className="absolute inset-[-2px] rounded-full"
+        {/* Outer glow */}
+        <div
+          className="absolute inset-[-8px] rounded-full"
           style={{
-            border: "1px solid rgba(79,195,247,0.2)",
-            borderTopColor: "rgba(79,195,247,0.5)",
-            borderRightColor: "transparent",
+            background:
+              "radial-gradient(circle, rgba(79,195,247,0.22) 0%, transparent 70%)",
+            filter: "blur(5px)",
           }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
         />
 
-        {/* Core icon */}
+        {/* Pulse ring */}
         <motion.div
+          className="absolute inset-[-4px] rounded-full border border-[rgba(79,195,247,0.3)]"
           animate={{
-            textShadow: [
-              "0 0 8px rgba(79,195,247,0.6)",
-              "0 0 16px rgba(79,195,247,0.8)",
-              "0 0 8px rgba(79,195,247,0.6)",
-            ],
+            scale: [1, 1.25, 1],
+            opacity: [0.4, 0.08, 0.4],
           }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="text-[20px]"
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Button body */}
+        <div
+          className="relative w-full h-full rounded-full flex items-center justify-center"
+          style={{
+            background:
+              "radial-gradient(circle at 35% 30%, rgba(79,195,247,0.4), rgba(17,34,64,0.95) 60%, rgba(5,8,22,0.98))",
+            boxShadow: `
+              0 0 24px rgba(79,195,247,0.35),
+              0 0 48px rgba(79,195,247,0.15),
+              inset 0 0 14px rgba(79,195,247,0.2)
+            `,
+            border: "1px solid rgba(79,195,247,0.35)",
+          }}
         >
-          🤖
-        </motion.div>
-      </div>
-    </motion.button>
+          {/* Rotating ring */}
+          <motion.div
+            className="absolute inset-[-2px] rounded-full"
+            style={{
+              border: "1px solid rgba(79,195,247,0.2)",
+              borderTopColor: "rgba(79,195,247,0.5)",
+              borderRightColor: "transparent",
+            }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          />
+
+          {/* Core icon */}
+          <motion.div
+            animate={{
+              textShadow: [
+                "0 0 8px rgba(79,195,247,0.6)",
+                "0 0 16px rgba(79,195,247,0.8)",
+                "0 0 8px rgba(79,195,247,0.6)",
+              ],
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="text-[22px]"
+          >
+            🤖
+          </motion.div>
+        </div>
+      </motion.button>
+    </motion.div>
   );
 }

@@ -20,7 +20,7 @@ export default function MobileAppView({ title, icon, onClose, children }: Mobile
       style={{
         background: "linear-gradient(180deg, rgba(5,8,22,0.97) 0%, rgba(10,25,47,0.97) 100%)",
         paddingTop: "env(safe-area-inset-top, 0px)",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        paddingBottom: "calc(72px + env(safe-area-inset-bottom, 0px))",
       }}
     >
       {/* Title bar */}

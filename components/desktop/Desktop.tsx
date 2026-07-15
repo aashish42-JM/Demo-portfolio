@@ -286,12 +286,6 @@ export default function Desktop() {
   }, [handleMobileOpenApp]);
 
   const handleMobileFloatAITap = useCallback(() => {
-    setMobileActiveTab("galaxy");
-    setMobileOpenAppId(null);
-    setApps((prev) => prev.map((app) => ({ ...app, isOpen: false })));
-  }, []);
-
-  const handleMobileFloatAILongPress = useCallback(() => {
     handleMobileOpenApp("ai");
   }, [handleMobileOpenApp]);
 
@@ -368,10 +362,9 @@ export default function Desktop() {
 
           {/* Floating AI Button */}
           <AnimatePresence>
-            {mobileActiveTab !== "galaxy" && !mobileOpenApp && (
+            {mobileActiveTab === "home" && !mobileOpenApp && (
               <FloatingAIButton
                 onTap={handleMobileFloatAITap}
-                onLongPress={handleMobileFloatAILongPress}
               />
             )}
           </AnimatePresence>

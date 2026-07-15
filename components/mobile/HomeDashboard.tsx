@@ -47,9 +47,6 @@ export default function HomeDashboard({ onOpenGalaxy }: HomeDashboardProps) {
         ? "Good Afternoon"
         : "Good Evening";
 
-  const activeMission = MISSIONS.find((m) => m.status === "active");
-  const completedCount = MISSIONS.filter((m) => m.status === "completed").length;
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -77,7 +74,6 @@ export default function HomeDashboard({ onOpenGalaxy }: HomeDashboardProps) {
               "0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03)",
           }}
         >
-          {/* Subtle top highlight */}
           <div
             className="absolute top-0 left-1/4 right-1/4 h-px"
             style={{
@@ -85,23 +81,15 @@ export default function HomeDashboard({ onOpenGalaxy }: HomeDashboardProps) {
                 "linear-gradient(90deg, transparent, rgba(79,195,247,0.15), transparent)",
             }}
           />
-
-          {/* Time */}
           <div
             className="font-mono text-[52px] font-extralight text-white leading-none tracking-tight"
-            style={{
-              textShadow: "0 0 40px rgba(79,195,247,0.2)",
-            }}
+            style={{ textShadow: "0 0 40px rgba(79,195,247,0.2)" }}
           >
             {hours}:{minutes}
           </div>
-
-          {/* Date */}
           <div className="font-mono text-[10px] text-[#4fc3f7]/40 tracking-[0.25em] uppercase mt-2">
             {dateStr}
           </div>
-
-          {/* Greeting */}
           <p className="font-mono text-[13px] text-[#90caf9]/55 mt-4 tracking-wide">
             {greeting},{" "}
             <span className="text-[#4fc3f7]/75">
@@ -125,7 +113,6 @@ export default function HomeDashboard({ onOpenGalaxy }: HomeDashboardProps) {
           <AICoreOrb onTap={onOpenGalaxy} size={200} />
         </motion.div>
 
-        {/* Rotating text */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -147,42 +134,19 @@ export default function HomeDashboard({ onOpenGalaxy }: HomeDashboardProps) {
         </motion.div>
       </div>
 
-      {/* ─── Bottom: Mission + Status Pills ─── */}
+      {/* ─── Bottom: Status Pills ─── */}
       <div className="flex-none px-6 pb-4">
-        {activeMission && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.45 }}
-            className="rounded-2xl px-5 py-4 mb-3"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(17,34,64,0.45) 0%, rgba(10,25,47,0.35) 100%)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-              border: "1px solid rgba(79,195,247,0.1)",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#4fc3f7] animate-pulse" />
-              <span className="font-mono text-[9px] text-[#4fc3f7]/45 uppercase tracking-[0.15em]">
-                Today&apos;s Focus
-              </span>
-            </div>
-            <p className="font-mono text-[12px] text-[#90caf9]/80 leading-relaxed">
-              {activeMission.title}
-            </p>
-          </motion.div>
-        )}
-
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
+          transition={{ delay: 0.7 }}
           className="flex items-center justify-center gap-3"
         >
           <Pill dot="#4ade80" text="AI Online" />
-          <Pill dot="#4fc3f7" text={`${completedCount} Missions`} />
+          <Pill
+            dot="#4fc3f7"
+            text={`${MISSIONS.filter((m) => m.status === "completed").length} Missions`}
+          />
           <Pill dot="#fbbf24" text="Active" />
         </motion.div>
       </div>

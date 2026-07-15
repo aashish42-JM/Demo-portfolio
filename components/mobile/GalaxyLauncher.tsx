@@ -10,9 +10,9 @@ interface GalaxyLauncherProps {
   onOpenApp: (appId: string) => void;
 }
 
-const ORBIT_RADIUS = 110;
-const ORBIT_SPEED = 50;
-const APP_SIZE = 42;
+const ORBIT_RADIUS = 120;
+const ORBIT_SPEED = 80;
+const APP_SIZE = 52;
 
 export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
   const [expanded, setExpanded] = useState(false);
@@ -23,7 +23,6 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
     return def?.mobile !== false;
   }).slice(0, 7);
 
-  // Auto-expand on mount
   useEffect(() => {
     const t = setTimeout(() => setExpanded(true), 350);
     return () => clearTimeout(t);
@@ -41,7 +40,9 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="absolute inset-0 flex flex-col"
-      style={{ paddingBottom: "calc(72px + env(safe-area-inset-bottom, 0px))" }}
+      style={{
+        paddingBottom: "calc(72px + env(safe-area-inset-bottom, 0px))",
+      }}
     >
       {/* Header */}
       <motion.div
@@ -58,18 +59,18 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
         </p>
       </motion.div>
 
-      {/* Galaxy Container — flex centers the orbit system */}
+      {/* Galaxy Container */}
       <div className="flex-1 relative">
-        {/* Orbit ring — visual guide */}
+        {/* Orbit ring */}
         <motion.div
           className="absolute rounded-full pointer-events-none"
           style={{
-            width: ORBIT_RADIUS * 2 + APP_SIZE + 20,
-            height: ORBIT_RADIUS * 2 + APP_SIZE + 20,
+            width: ORBIT_RADIUS * 2 + APP_SIZE + 24,
+            height: ORBIT_RADIUS * 2 + APP_SIZE + 24,
             left: "50%",
             top: "50%",
-            marginLeft: -(ORBIT_RADIUS * 2 + APP_SIZE + 20) / 2,
-            marginTop: -(ORBIT_RADIUS * 2 + APP_SIZE + 20) / 2,
+            marginLeft: -(ORBIT_RADIUS * 2 + APP_SIZE + 24) / 2,
+            marginTop: -(ORBIT_RADIUS * 2 + APP_SIZE + 24) / 2,
             border: "1px solid rgba(79,195,247,0.06)",
           }}
           animate={{
@@ -79,7 +80,7 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         />
 
-        {/* ─── Orbit Container — centered, rotates when expanded ─── */}
+        {/* ─── Orbit Container ─── */}
         <div
           className="absolute pointer-events-none"
           style={{
@@ -89,11 +90,14 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
             top: "50%",
             marginLeft: -orbitDiameter / 2,
             marginTop: -orbitDiameter / 2,
-            animation: expanded ? `spin ${ORBIT_SPEED}s linear infinite` : "none",
+            animation: expanded
+              ? `spin ${ORBIT_SPEED}s linear infinite`
+              : "none",
           }}
         >
           {mobileApps.map((app, i) => {
-            const angle = (i / mobileApps.length) * Math.PI * 2 - Math.PI / 2;
+            const angle =
+              (i / mobileApps.length) * Math.PI * 2 - Math.PI / 2;
             const targetX = Math.cos(angle) * ORBIT_RADIUS;
             const targetY = Math.sin(angle) * ORBIT_RADIUS;
             const isSelected = selectedApp === app.id;
@@ -104,12 +108,11 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
                 className="absolute pointer-events-auto"
                 style={{
                   width: APP_SIZE,
-                  height: APP_SIZE,
+                  height: APP_SIZE + 20,
                   left: "50%",
                   top: "50%",
                   marginLeft: -APP_SIZE / 2,
                   marginTop: -APP_SIZE / 2,
-                  // Counter-rotate to keep icon upright
                   animation: expanded
                     ? `counter-spin ${ORBIT_SPEED}s linear infinite`
                     : "none",
@@ -134,45 +137,57 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
                     type: "spring",
                     stiffness: 90,
                     damping: 13,
-                    delay: expanded ? i * 0.055 : (mobileApps.length - 1 - i) * 0.035,
+                    delay: expanded
+                      ? i * 0.055
+                      : (mobileApps.length - 1 - i) * 0.035,
                   }}
                 >
                   {/* Planet body */}
                   <div
                     className="w-full h-full rounded-full flex items-center justify-center transition-shadow duration-300"
                     style={{
-                      background: `radial-gradient(circle at 35% 35%, ${app.color}45, ${app.color}15)`,
+                      background: `radial-gradient(circle at 35% 35%, ${app.color}50, ${app.color}20)`,
                       boxShadow: isSelected
-                        ? `0 0 24px ${app.color}80, inset 0 0 12px ${app.color}30`
-                        : `0 0 10px ${app.color}30, inset 0 0 6px ${app.color}12`,
-                      border: `1px solid ${app.color}${isSelected ? "80" : "30"}`,
+                        ? `0 0 28px ${app.color}90, inset 0 0 14px ${app.color}35`
+                        : `0 0 14px ${app.color}35, inset 0 0 8px ${app.color}15`,
+                      border: `1px solid ${app.color}${isSelected ? "90" : "40"}`,
                     }}
                   >
                     <span
-                      className="text-base"
-                      style={{ filter: "drop-shadow(0 0 3px rgba(0,0,0,0.5))" }}
+                      className="text-xl"
+                      style={{
+                        filter: "drop-shadow(0 0 4px rgba(0,0,0,0.5))",
+                      }}
                     >
                       {app.icon}
                     </span>
                   </div>
 
-                  {/* Label */}
+                  {/* Label with glass background */}
                   <div
-                    className="absolute left-1/2 -translate-x-1/2 font-mono text-[7px] text-[#90caf9]/40 tracking-wider whitespace-nowrap"
-                    style={{ top: APP_SIZE + 3 }}
+                    className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap px-2.5 py-1 rounded-full"
+                    style={{
+                      top: APP_SIZE + 4,
+                      background: "rgba(10,25,47,0.65)",
+                      backdropFilter: "blur(8px)",
+                      WebkitBackdropFilter: "blur(8px)",
+                      border: "1px solid rgba(79,195,247,0.1)",
+                    }}
                   >
-                    {app.name}
+                    <span className="font-mono text-[9px] text-[#90caf9]/70 tracking-wider">
+                      {app.name}
+                    </span>
                   </div>
 
                   {/* Moon */}
                   <div
-                    className="absolute w-1 h-1 rounded-full"
+                    className="absolute w-1.5 h-1.5 rounded-full"
                     style={{
-                      background: `${app.color}45`,
-                      boxShadow: `0 0 3px ${app.color}30`,
-                      top: -6,
+                      background: `${app.color}50`,
+                      boxShadow: `0 0 4px ${app.color}35`,
+                      top: -7,
                       left: "50%",
-                      marginLeft: -2,
+                      marginLeft: -3,
                     }}
                   />
                 </motion.button>
@@ -181,7 +196,7 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
           })}
         </div>
 
-        {/* ─── Central AI Core — perfectly centered ─── */}
+        {/* ─── Central AI Core ─── */}
         <div
           className="absolute z-10"
           style={{
@@ -194,7 +209,7 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
             animate={{ scale: expanded ? 1 : 0.92 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
           >
-            <AICoreOrb size={76} onTap={handleCoreTap} />
+            <AICoreOrb size={80} onTap={handleCoreTap} />
           </motion.div>
         </div>
       </div>
@@ -217,7 +232,9 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
             }}
           >
             <div className="flex items-center gap-3">
-              <span className="text-lg">{APP_DEFINITIONS[selectedApp]?.icon}</span>
+              <span className="text-lg">
+                {APP_DEFINITIONS[selectedApp]?.icon}
+              </span>
               <div className="flex-1 min-w-0">
                 <p className="font-mono text-[12px] text-[#90caf9]/80 truncate">
                   {APP_DEFINITIONS[selectedApp]?.name}
