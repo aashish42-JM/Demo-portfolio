@@ -96,6 +96,7 @@ export default function Desktop() {
   // Mobile state — "home" | "galaxy" | "contact" | app-id
   const [mobileActiveTab, setMobileActiveTab] = useState("home");
   const [mobileOpenAppId, setMobileOpenAppId] = useState<string | null>(null);
+  const [mobileAppKey, setMobileAppKey] = useState(0);
 
   // Handle intro - skip boot screen, go straight to welcome
   useEffect(() => {
@@ -246,6 +247,7 @@ export default function Desktop() {
   const handleMobileOpenApp = useCallback((id: string) => {
     setMobileOpenAppId(id);
     setMobileActiveTab(id);
+    setMobileAppKey((k) => k + 1);
     setApps((prev) =>
       prev.map((app) =>
         app.id === id ? { ...app, isOpen: true } : { ...app, isOpen: false }
@@ -335,7 +337,7 @@ export default function Desktop() {
           </AnimatePresence>
 
           {/* Galaxy Launcher with AI Core Orb */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {showGalaxyLauncher && (
               <GalaxyLauncher
                 key="galaxy"
@@ -346,10 +348,10 @@ export default function Desktop() {
           </AnimatePresence>
 
           {/* Mobile Fullscreen App View */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {mobileOpenApp && (
               <MobileAppView
-                key={mobileOpenApp.id}
+                key={`app-${mobileAppKey}`}
                 app={mobileOpenApp}
                 onClose={handleMobileCloseApp}
               >
