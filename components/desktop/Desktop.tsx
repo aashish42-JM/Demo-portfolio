@@ -9,8 +9,10 @@ import AppIcon from "./AppIcon";
 import TaskbarComp from "./Taskbar";
 import Window from "./Window";
 import MobileNav from "@/components/mobile/MobileNav";
-import MobileLauncher from "@/components/mobile/MobileLauncher";
+import HomeDashboard from "@/components/mobile/HomeDashboard";
+import GalaxyLauncher from "@/components/mobile/GalaxyLauncher";
 import MobileAppView from "@/components/mobile/MobileAppView";
+import FloatingAIButton from "@/components/mobile/FloatingAIButton";
 import AboutApp from "@/components/apps/AboutApp";
 import ProjectsApp from "@/components/apps/ProjectsApp";
 import SkillGalaxy from "@/components/apps/SkillGalaxy";
@@ -91,7 +93,7 @@ export default function Desktop() {
   const [bootStage, setBootStage] = useState<"boot" | "welcome" | "desktop">("desktop");
   const [showDesktop, setShowDesktop] = useState(false);
 
-  // Mobile state
+  // Mobile state — "home" | "galaxy" | "contact" | app-id
   const [mobileActiveTab, setMobileActiveTab] = useState("home");
   const [mobileOpenAppId, setMobileOpenAppId] = useState<string | null>(null);
 
@@ -111,6 +113,7 @@ export default function Desktop() {
     if (action === "ask-ai") {
       if (isMobile) {
         setMobileOpenAppId("ai");
+        setMobileActiveTab("ai");
       } else {
         setApps((prev) =>
           prev.map((app) =>
@@ -242,36 +245,58 @@ export default function Desktop() {
   // Mobile handlers
   const handleMobileOpenApp = useCallback((id: string) => {
     setMobileOpenAppId(id);
+    setMobileActiveTab(id);
     setApps((prev) =>
       prev.map((app) =>
-        app.id === id ? { ...app, isOpen: true } : app
+        app.id === id ? { ...app, isOpen: true } : { ...app, isOpen: false }
       )
     );
   }, []);
 
   const handleMobileCloseApp = useCallback(() => {
-    if (mobileOpenAppId) {
-      setApps((prev) =>
-        prev.map((app) =>
-          app.id === mobileOpenAppId ? { ...app, isOpen: false } : app
-        )
-      );
-    }
     setMobileOpenAppId(null);
-  }, [mobileOpenAppId]);
+    setMobileActiveTab("galaxy");
+    setApps((prev) =>
+      prev.map((app) => ({ ...app, isOpen: false }))
+    );
+  }, []);
 
   const handleMobileTabChange = useCallback((tab: string) => {
-    setMobileActiveTab(tab);
-    if (tab === "ai") {
-      handleMobileOpenApp("ai");
+    if (tab === "home") {
+      setMobileActiveTab("home");
+      setMobileOpenAppId(null);
+      setApps((prev) => prev.map((app) => ({ ...app, isOpen: false })));
+    } else if (tab === "core") {
+      setMobileActiveTab("galaxy");
+      setMobileOpenAppId(null);
+      setApps((prev) => prev.map((app) => ({ ...app, isOpen: false })));
     } else if (tab === "contact") {
       handleMobileOpenApp("contact");
-    } else if (tab === "home" || tab === "apps") {
-      handleMobileCloseApp();
     }
-  }, [handleMobileOpenApp, handleMobileCloseApp]);
+  }, [handleMobileOpenApp]);
 
-  const mobileOpenApp = mobileOpenAppId ? apps.find((a) => a.id === mobileOpenAppId) : null;
+  const handleMobileOpenFromGalaxy = useCallback((id: string) => {
+    if (id === "ai") {
+      handleMobileOpenApp("ai");
+    } else {
+      handleMobileOpenApp(id);
+    }
+  }, [handleMobileOpenApp]);
+
+  const handleMobileFloatAITap = useCallback(() => {
+    setMobileActiveTab("galaxy");
+    setMobileOpenAppId(null);
+    setApps((prev) => prev.map((app) => ({ ...app, isOpen: false })));
+  }, []);
+
+  const handleMobileFloatAILongPress = useCallback(() => {
+    handleMobileOpenApp("ai");
+  }, [handleMobileOpenApp]);
+
+  const mobileOpenApp = mobileOpenAppId ? apps.find((a) => a.id === mobileOpenAppId) ?? null : null;
+  const showGalaxyLauncher = mobileActiveTab === "galaxy" && !mobileOpenApp;
+  const showHomeDashboard = mobileActiveTab === "home" && !mobileOpenApp;
+  const showMobileNav = !mobileOpenApp || mobileActiveTab === "contact";
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ paddingBottom: isMobile ? 0 : 48 }}>
@@ -302,13 +327,26 @@ export default function Desktop() {
       {/* ═══════════════ MOBILE LAYOUT ═══════════════ */}
       {isMobile ? (
         <>
-          {/* Mobile Launcher (home/apps tab) */}
-          {(mobileActiveTab === "home" || mobileActiveTab === "apps") && !mobileOpenAppId && (
-            <MobileLauncher apps={apps} onOpenApp={handleMobileOpenApp} />
-          )}
+          {/* Home Dashboard */}
+          <AnimatePresence mode="wait">
+            {showHomeDashboard && (
+              <HomeDashboard key="home" />
+            )}
+          </AnimatePresence>
+
+          {/* Galaxy Launcher with AI Core Orb */}
+          <AnimatePresence mode="wait">
+            {showGalaxyLauncher && (
+              <GalaxyLauncher
+                key="galaxy"
+                onOpenApp={handleMobileOpenFromGalaxy}
+                onOpenAI={() => handleMobileOpenApp("ai")}
+              />
+            )}
+          </AnimatePresence>
 
           {/* Mobile Fullscreen App View */}
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {mobileOpenApp && (
               <MobileAppView
                 key={mobileOpenApp.id}
@@ -322,6 +360,16 @@ export default function Desktop() {
 
           {/* Mobile Bottom Nav */}
           <MobileNav activeTab={mobileActiveTab} onTabChange={handleMobileTabChange} />
+
+          {/* Floating AI Button */}
+          <AnimatePresence>
+            {mobileActiveTab !== "galaxy" && !mobileOpenApp && (
+              <FloatingAIButton
+                onTap={handleMobileFloatAITap}
+                onLongPress={handleMobileFloatAILongPress}
+              />
+            )}
+          </AnimatePresence>
         </>
       ) : (
       /* ═══════════════ DESKTOP LAYOUT ═══════════════ */

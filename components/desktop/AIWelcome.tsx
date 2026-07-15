@@ -139,34 +139,34 @@ export default function AIWelcome({ onComplete, onSkip }: AIWelcomeProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={isDissolving ? { opacity: 0, y: -20 } : { opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-wrap justify-center gap-6"
+            className="flex flex-wrap justify-center gap-3 sm:gap-6 px-4"
           >
             <button
               onClick={() => handleAction("explore")}
-              className="glass px-10 py-5 rounded-2xl border border-[rgba(79,195,247,0.3)] text-[#4fc3f7] font-mono text-lg hover:bg-[#4fc3f7]/10 hover:border-[rgba(79,195,247,0.6)] hover:shadow-[0_0_30px_rgba(79,195,247,0.3)] transition-all flex items-center gap-4"
+              className="glass px-5 py-3 sm:px-10 sm:py-5 rounded-xl sm:rounded-2xl border border-[rgba(79,195,247,0.3)] text-[#4fc3f7] font-mono text-sm sm:text-lg active:bg-[#4fc3f7]/10 active:border-[rgba(79,195,247,0.6)] hover:bg-[#4fc3f7]/10 hover:border-[rgba(79,195,247,0.6)] hover:shadow-[0_0_30px_rgba(79,195,247,0.3)] transition-all flex items-center gap-3 sm:gap-4"
             >
-              <span className="text-3xl">🚀</span>
+              <span className="text-xl sm:text-3xl">🚀</span>
               Explore Portfolio
             </button>
             <button
               onClick={() => handleAction("ask-ai")}
-              className="glass px-10 py-5 rounded-2xl border border-[rgba(79,195,247,0.3)] text-[#4fc3f7] font-mono text-lg hover:bg-[#4fc3f7]/10 hover:border-[rgba(79,195,247,0.6)] hover:shadow-[0_0_30px_rgba(79,195,247,0.3)] transition-all flex items-center gap-4"
+              className="glass px-5 py-3 sm:px-10 sm:py-5 rounded-xl sm:rounded-2xl border border-[rgba(79,195,247,0.3)] text-[#4fc3f7] font-mono text-sm sm:text-lg active:bg-[#4fc3f7]/10 active:border-[rgba(79,195,247,0.6)] hover:bg-[#4fc3f7]/10 hover:border-[rgba(79,195,247,0.6)] hover:shadow-[0_0_30px_rgba(79,195,247,0.3)] transition-all flex items-center gap-3 sm:gap-4"
             >
-              <span className="text-3xl">🤖</span>
+              <span className="text-xl sm:text-3xl">🤖</span>
               Ask AI
             </button>
             <button
               onClick={() => handleAction("resume")}
-              className="glass px-10 py-5 rounded-2xl border border-[rgba(79,195,247,0.3)] text-[#4fc3f7] font-mono text-lg hover:bg-[#4fc3f7]/10 hover:border-[rgba(79,195,247,0.6)] hover:shadow-[0_0_30px_rgba(79,195,247,0.3)] transition-all flex items-center gap-4"
+              className="glass px-5 py-3 sm:px-10 sm:py-5 rounded-xl sm:rounded-2xl border border-[rgba(79,195,247,0.3)] text-[#4fc3f7] font-mono text-sm sm:text-lg active:bg-[#4fc3f7]/10 active:border-[rgba(79,195,247,0.6)] hover:bg-[#4fc3f7]/10 hover:border-[rgba(79,195,247,0.6)] hover:shadow-[0_0_30px_rgba(79,195,247,0.3)] transition-all flex items-center gap-3 sm:gap-4"
             >
-              <span className="text-3xl">📄</span>
+              <span className="text-xl sm:text-3xl">📄</span>
               Resume
             </button>
             <button
               onClick={() => handleAction()}
-              className="px-10 py-5 rounded-2xl border border-white/20 text-white/70 hover:text-white hover:border-white/40 font-mono text-lg transition-all flex items-center gap-4"
+              className="px-5 py-3 sm:px-10 sm:py-5 rounded-xl sm:rounded-2xl border border-white/20 text-white/70 hover:text-white hover:border-white/40 font-mono text-sm sm:text-lg transition-all flex items-center gap-3 sm:gap-4"
             >
-              <span className="text-3xl">⏩</span>
+              <span className="text-xl sm:text-3xl">⏩</span>
               Skip
             </button>
           </motion.div>
