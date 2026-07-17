@@ -14,6 +14,14 @@ const ORBIT_RADIUS = 120;
 const ORBIT_SPEED = 80;
 const APP_SIZE = 52;
 
+const STARS = Array.from({ length: 30 }, (_, i) => ({
+  id: i,
+  x: (Math.cos(i * 2.4 + 0.5) * 0.42 + 0.5) * 100,
+  y: (Math.sin(i * 1.7 + 1.2) * 0.42 + 0.5) * 100,
+  size: 1 + (i % 3) * 0.7,
+  delay: (i % 5) * 0.08,
+}));
+
 export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
   const [expanded, setExpanded] = useState(false);
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
@@ -61,26 +69,90 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
 
       {/* Galaxy Container */}
       <div className="flex-1 relative">
-        {/* Orbit ring */}
+        {/* ─── Background Stars ─── */}
+        {STARS.map((star) => (
+          <motion.div
+            key={star.id}
+            className="absolute rounded-full bg-[#4fc3f7]"
+            style={{
+              left: `${star.x}%`,
+              top: `${star.y}%`,
+              width: star.size,
+              height: star.size,
+            }}
+            animate={
+              expanded
+                ? {
+                    opacity: [0.08, 0.35, 0.08],
+                    scale: [1, 1.4, 1],
+                  }
+                : {
+                    opacity: 0,
+                    scale: 0,
+                  }
+            }
+            transition={
+              expanded
+                ? {
+                    opacity: {
+                      duration: 3 + star.delay * 4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
+                    scale: {
+                      duration: 3 + star.delay * 4,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
+                  }
+                : {
+                    duration: 0.5,
+                    delay: star.delay * 0.3,
+                    ease: "easeOut",
+                  }
+            }
+          />
+        ))}
+
+        {/* ─── Outer orbit ring (dashed) ─── */}
         <motion.div
           className="absolute rounded-full pointer-events-none"
           style={{
-            width: ORBIT_RADIUS * 2 + APP_SIZE + 24,
-            height: ORBIT_RADIUS * 2 + APP_SIZE + 24,
+            width: ORBIT_RADIUS * 2 + APP_SIZE + 50,
+            height: ORBIT_RADIUS * 2 + APP_SIZE + 50,
             left: "50%",
             top: "50%",
-            marginLeft: -(ORBIT_RADIUS * 2 + APP_SIZE + 24) / 2,
-            marginTop: -(ORBIT_RADIUS * 2 + APP_SIZE + 24) / 2,
-            border: "1px solid rgba(79,195,247,0.06)",
+            marginLeft: -(ORBIT_RADIUS * 2 + APP_SIZE + 50) / 2,
+            marginTop: -(ORBIT_RADIUS * 2 + APP_SIZE + 50) / 2,
+            border: "1px dashed rgba(79,195,247,0.04)",
           }}
           animate={{
             opacity: expanded ? 1 : 0,
-            scale: expanded ? 1 : 0.5,
+            scale: expanded ? 1 : 0.3,
           }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         />
 
-        {/* ─── Orbit Container ─── */}
+        {/* ─── Main orbit ring ─── */}
+        <motion.div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: ORBIT_RADIUS * 2 + APP_SIZE + 20,
+            height: ORBIT_RADIUS * 2 + APP_SIZE + 20,
+            left: "50%",
+            top: "50%",
+            marginLeft: -(ORBIT_RADIUS * 2 + APP_SIZE + 20) / 2,
+            marginTop: -(ORBIT_RADIUS * 2 + APP_SIZE + 20) / 2,
+            border: "1px solid rgba(79,195,247,0.07)",
+          }}
+          animate={{
+            opacity: expanded ? 1 : 0,
+            scale: expanded ? 1 : 0.4,
+          }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        />
+
+        {/* ─── Orbit Container — spins to make apps revolve ─── */}
         <div
           className="absolute pointer-events-none"
           style={{
@@ -108,11 +180,12 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
                 className="absolute pointer-events-auto"
                 style={{
                   width: APP_SIZE,
-                  height: APP_SIZE + 20,
+                  height: APP_SIZE + 22,
                   left: "50%",
                   top: "50%",
                   marginLeft: -APP_SIZE / 2,
                   marginTop: -APP_SIZE / 2,
+                  // Counter-spin: cancels container rotation so icon stays upright
                   animation: expanded
                     ? `counter-spin ${ORBIT_SPEED}s linear infinite`
                     : "none",
@@ -131,7 +204,6 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
                     x: expanded ? targetX : 0,
                     y: expanded ? targetY : 0,
                     opacity: expanded ? 1 : 0,
-                    scale: expanded ? 1 : 0.2,
                   }}
                   transition={{
                     type: "spring",
@@ -206,7 +278,7 @@ export default function GalaxyLauncher({ onOpenApp }: GalaxyLauncherProps) {
           }}
         >
           <motion.div
-            animate={{ scale: expanded ? 1 : 0.92 }}
+            animate={{ scale: expanded ? 1 : 0.88 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
           >
             <AICoreOrb size={80} onTap={handleCoreTap} />
